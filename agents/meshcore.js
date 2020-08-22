@@ -435,9 +435,34 @@ function createMeshCore(agent) {
                     if (mesh.isControlChannelConnected) { mesh.SendCommand({ action: 'smbios', value: SMBiosTablesRaw }); }
 
                     // If SMBios tables say that Intel AMT is present, try to connect MEI
-                    if (SMBiosTables.amtInfo && (SMBiosTables.amtInfo.AMT == true)) {
+                    if (SMBiosTables.amtInfo && (SMBiosTables.amtInfo.AMT == true))
+                    {
                         var amtmodule = require('amt-manage');
                         amt = new amtmodule(mesh, db, false);
+                        amt.on('portBinding_LMS', function (map)
+                        {
+                            var j = { action: 'lmsinfo', value: { ports: map.keys() } };
+                            mesh.SendCommand(j);
+                        });
+                        amt.on('stateChange_LMS', function (v)
+                        {
+                            if (!meshCoreObj.intelamt) { meshCoreObj.intelamt = {}; }
+                            switch(v)
+                            {
+                                case 0:
+                                    meshCoreObj.intelamt.microlms = 'DISABLED';
+                                    break;
+                                case 1:
+                                    meshCoreObj.intelamt.microlms = 'CONNECTING';
+                                    break;
+                                case 2:
+                                    meshCoreObj.intelamt.microlms = 'CONNECTED';
+                                    break;
+                                default:
+                                    break;
+                            }
+                            mesh.SendCommand(meshCoreObj);
+                        });
                         amt.onStateChange = function (state) { if (state == 2) { sendPeriodicServerUpdate(1); } }
                         if (amtPolicy != null) { amt.setPolicy(amtPolicy); }
                         amt.start();
@@ -838,14 +863,14 @@ function createMeshCore(agent) {
                                 require('clipboard').dispatchRead().then(function (str) {
                                     if (str) {
                                         MeshServerLog("Getting clipboard content, " + str.length + " byte(s)", data);
-                                        mesh.SendCommand({ action: 'msg', type: 'getclip', sessionid: data.sessionid, data: str });
+                                        mesh.SendCommand({ action: 'msg', type: 'getclip', sessionid: data.sessionid, data: str, tag: data.tag });
                                     }
                                 });
                             } else {
                                 require("clipboard").read().then(function (str) {
                                     if (str) {
                                         MeshServerLog("Getting clipboard content, " + str.length + " byte(s)", data);
-                                        mesh.SendCommand({ action: 'msg', type: 'getclip', sessionid: data.sessionid, data: str });
+                                        mesh.SendCommand({ action: 'msg', type: 'getclip', sessionid: data.sessionid, data: str, tag: data.tag });
                                     }
                                 });
                             }
@@ -1243,7 +1268,7 @@ function createMeshCore(agent) {
         */
 
         // If there is a upload or download active on this connection, close the file
-        if (this.httprequest.uploadFile) { fs.closeSync(this.httprequest.uploadFile); delete this.httprequest.uploadFile; }
+        if (this.httprequest.uploadFile) { fs.closeSync(this.httprequest.uploadFile); delete this.httprequest.uploadFile; delete this.httprequest.uploadFileid; delete this.httprequest.uploadFilePath; }
         if (this.httprequest.downloadFile) { fs.closeSync(this.httprequest.downloadFile); delete this.httprequest.downloadFile; }
 
         // Clean up WebRTC
@@ -1266,31 +1291,18 @@ function createMeshCore(agent) {
         //sendConsoleText('OnTunnelData, ' + data.length + ', ' + typeof data + ', ' + data);
 
         // If this is upload data, save it to file
-        if (this.httprequest.uploadFile) {
-            if (typeof data == 'object') {
-                // Save the data to file being uploaded.
-                if (this.httprequest.uploadFile) {
-                    try { fs.writeSync(this.httprequest.uploadFile, data); } catch (e) { sendConsoleText('FileSave ERROR'); this.write(Buffer.from(JSON.stringify({ action: 'uploaderror' }))); return; } // Write to the file, if there is a problem, error out.
-                    this.write(Buffer.from(JSON.stringify({ action: 'uploadack', reqid: this.httprequest.uploadFileid }))); // Ask for more data.
-                }
-            } else if (typeof data == 'string') {
-                // Close the file and confirm. We need to make this added round trip since websocket deflate compression can cause the last message before a websocket close to not be received.
-                if (this.httprequest.uploadFile) { fs.closeSync(this.httprequest.uploadFile); delete this.httprequest.uploadFile; }
-                this.write(Buffer.from(JSON.stringify({ action: 'uploaddone', reqid: this.httprequest.uploadFileid }))); // Indicate that we closed the file.
-                this.end();
+        if ((this.httprequest.uploadFile) && (typeof data == 'object') && (data[0] != 123)) {
+            // Save the data to file being uploaded.
+            if (data[0] == 0) {
+                // If data starts with zero, skip the first byte. This is used to escape binary file data from JSON.
+                try { fs.writeSync(this.httprequest.uploadFile, data, 1, data.length - 1); } catch (e) { sendConsoleText('FileUpload Error'); this.write(Buffer.from(JSON.stringify({ action: 'uploaderror' }))); return; } // Write to the file, if there is a problem, error out.
+            } else {
+                // If data does not start with zero, save as-is.
+                try { fs.writeSync(this.httprequest.uploadFile, data); } catch (e) { sendConsoleText('FileUpload Error'); this.write(Buffer.from(JSON.stringify({ action: 'uploaderror' }))); return; } // Write to the file, if there is a problem, error out.
             }
+            this.write(Buffer.from(JSON.stringify({ action: 'uploadack', reqid: this.httprequest.uploadFileid }))); // Ask for more data.
             return;
         }
-        /*
-        // If this is a download, send more of the file
-        if (this.httprequest.downloadFile) {
-            var buf = Buffer.alloc(4096);
-            var len = fs.readSync(this.httprequest.downloadFile, buf, 0, 4096, null);
-            this.httprequest.downloadFilePtr += len;
-            if (len > 0) { this.write(buf.slice(0, len)); } else { fs.closeSync(this.httprequest.downloadFile); this.httprequest.downloadFile = undefined; this.end(); }
-            return;
-        }
-        */
 
         if (this.httprequest.state == 0) {
             // Check if this is a relay connection
@@ -1842,8 +1854,7 @@ function createMeshCore(agent) {
                     this.on('data', onTunnelControlData);
                     //this.write('MeshCore KVM Hello!1');
 
-                } else if (this.httprequest.protocol == 5)
-                {
+                } else if (this.httprequest.protocol == 5) {
                     //
                     // Remote Files
                     //
@@ -2079,10 +2090,34 @@ function createMeshCore(agent) {
                         if (this.httprequest.uploadFile != null) { fs.closeSync(this.httprequest.uploadFile); delete this.httprequest.uploadFile; }
                         if (cmd.path == undefined) break;
                         var filepath = cmd.name ? obj.path.join(cmd.path, cmd.name) : cmd.path;
+                        this.httprequest.uploadFilePath = filepath;
                         MeshServerLog('Upload: \"' + filepath + '\"', this.httprequest);
                         try { this.httprequest.uploadFile = fs.openSync(filepath, 'wbN'); } catch (e) { this.write(Buffer.from(JSON.stringify({ action: 'uploaderror', reqid: cmd.reqid }))); break; }
                         this.httprequest.uploadFileid = cmd.reqid;
                         if (this.httprequest.uploadFile) { this.write(Buffer.from(JSON.stringify({ action: 'uploadstart', reqid: this.httprequest.uploadFileid }))); }
+                        break;
+                    }
+                    case 'uploaddone': {
+                        // Indicates that an upload is done
+                        if (this.httprequest.uploadFile) {
+                            fs.closeSync(this.httprequest.uploadFile);
+                            this.write(Buffer.from(JSON.stringify({ action: 'uploaddone', reqid: this.httprequest.uploadFileid }))); // Indicate that we closed the file.
+                            delete this.httprequest.uploadFile;
+                            delete this.httprequest.uploadFileid;
+                            delete this.httprequest.uploadFilePath;
+                        }
+                        break;
+                    }
+                    case 'uploadcancel': {
+                        // Indicates that an upload is canceled
+                        if (this.httprequest.uploadFile) {
+                            fs.closeSync(this.httprequest.uploadFile);
+                            fs.unlinkSync(this.httprequest.uploadFilePath);
+                            this.write(Buffer.from(JSON.stringify({ action: 'uploadcancel', reqid: this.httprequest.uploadFileid }))); // Indicate that we closed the file.
+                            delete this.httprequest.uploadFile;
+                            delete this.httprequest.uploadFileid;
+                            delete this.httprequest.uploadFilePath;
+                        }
                         break;
                     }
                     case 'copy': {
@@ -2103,6 +2138,31 @@ function createMeshCore(agent) {
                         }
                         break;
                     }
+                    case 'zip':
+                        // Zip a bunch of files
+                        if (this.zip != null) return; // Zip operating is currently running, exit now.
+
+                        // Check that the specified files exist & build full paths
+                        var fp, stat, p = [];
+                        for (var i in cmd.files) { fp = cmd.path + '/' + cmd.files[i]; stat = null; try { stat = fs.statSync(fp); } catch (e) { } if (stat != null) { p.push(fp); } }
+                        if (p.length == 0) return; // No files, quit now.
+
+                        // Setup file compression
+                        var ofile = cmd.path + '/' + cmd.output;
+                        this.write(Buffer.from(JSON.stringify({ action: 'dialogmessage', msg: 'zipping' })));
+                        var out = require('fs').createWriteStream(ofile, { flags: 'wb' });
+                        out.xws = this;
+                        out.on('close', function () { this.xws.write(Buffer.from(JSON.stringify({ action: 'dialogmessage', msg: null }))); this.xws.write(Buffer.from(JSON.stringify({ action: 'refresh' }))); this.xws.zip = null; });
+                        this.zip = require('zip-writer').write({ files: p, basePath: cmd.path });
+                        this.zip.xws = this;
+                        this.zip.on('progress', require('events').moderated(function (name, p) { this.xws.write(Buffer.from(JSON.stringify({ action: 'dialogmessage', msg: 'zippingFile', file: ((process.platform == 'win32') ? (name.split('/').join('\\')) : name), progress: p }))); }, 2000));
+                        this.zip.pipe(out);
+                        break;
+                    case 'cancel':
+                        // Cancel zip operation if present
+                        try { this.zip.cancel(function () { }); } catch (ex) { }
+                        this.zip = null;
+                        break;
                     default:
                         // Unknown action, ignore it.
                         break;
@@ -2483,12 +2543,9 @@ function createMeshCore(agent) {
                     }
                     break;
                 case 'zip':
-                    if (args['_'].length == 0)
-                    {
+                    if (args['_'].length == 0) {
                         response = "Proper usage: zip (output file name), input1 [, input n]"; // Display usage
-                    }
-                    else
-                    {
+                    } else {
                         var p = args['_'].join(' ').split(',');
                         var ofile = p.shift();
                         sendConsoleText('Writing ' + ofile + '...');
@@ -2501,24 +2558,16 @@ function createMeshCore(agent) {
                     }
                     break;
                 case 'unzip':
-                    if (args['_'].length == 0)
-                    {
+                    if (args['_'].length == 0) {
                         response = "Proper usage: unzip input, destination"; // Display usage
-                    }
-                    else
-                    {
+                    } else {
                         var p = args['_'].join(' ').split(',');
-                        if (p.length != 2)
-                        {
-                            response = "Proper usage: unzip input, destination"; // Display usage
-                            break;
-                        }
+                        if (p.length != 2) { response = "Proper usage: unzip input, destination"; break; } // Display usage
                         var prom = require('zip-reader').read(p[0]);
                         prom._dest = p[1];
                         prom.self = this;
                         prom.sessionid = sessionid;
-                        prom.then(function (zipped)
-                        {
+                        prom.then(function (zipped) {
                             sendConsoleText('Extracting to ' + this._dest + '...', this.sessionid);
                             zipped.extractAll(this._dest).then(function () { sendConsoleText('finished unzipping', this.sessionid); }, function (e) { sendConsoleText('Error unzipping: ' + e, this.sessionid); }).parentPromise.sessionid = this.sessionid;
                         }, function (e) { sendConsoleText('Error unzipping: ' + e, this.sessionid); });
@@ -3492,7 +3541,26 @@ function createMeshCore(agent) {
             amt.getAmtInfo(function (meinfo) {
                 try {
                     if (meinfo == null) return;
-                    var intelamt = {}, p = false;
+                    var intelamt = {};
+                    if (amt != null)
+                    {
+                        switch(amt.lmsstate)
+                        {
+                            case 0:
+                                intelamt.microlms = 'DISABLED'
+                                break;
+                            case 1:
+                                intelamt.microlms = 'CONNECTING'
+                                break;
+                            case 2:
+                                intelamt.microlms = 'CONNECTED'
+                                break;
+                            default:
+                                intelamt.microlms = 'unknown'
+                                break;
+                        }
+                    }
+                    var p = false;
                     if ((meinfo.Versions != null) && (meinfo.Versions.AMT != null)) { intelamt.ver = meinfo.Versions.AMT; p = true; if (meinfo.Versions.Sku != null) { intelamt.sku = parseInt(meinfo.Versions.Sku); } }
                     if (meinfo.ProvisioningState != null) { intelamt.state = meinfo.ProvisioningState; p = true; }
                     if (meinfo.Flags != null) { intelamt.flags = meinfo.Flags; p = true; }

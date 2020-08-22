@@ -88,7 +88,11 @@
       "backupIntervalHours": 24,
       "keepLastDaysBackup": 10,
       "zipPassword": "MyReallySecretPassword3",
-      "_backupPath": "C:\\backups"
+      "_backupPath": "C:\\backups",
+      "_googleDrive": {
+        "folderName": "MeshCentral-Backups",
+        "maxFiles": 10
+      }
     },
     "_redirects": {
       "meshcommander": "https://www.meshcommander.com/"
@@ -136,7 +140,9 @@
         "nonalpha": 1,
         "reset": 90,
         "force2factor": true,
-        "skip2factor": "127.0.0.1,192.168.2.0/24"
+        "skip2factor": "127.0.0.1,192.168.2.0/24",
+        "oldPasswordBan": 5,
+        "banCommonPasswords": false
       },
       "_agentInviteCodes": true,
       "_agentNoProxy": true,
@@ -160,6 +166,7 @@
       "_userBlockedIP": "127.0.0.1,::1,192.168.0.100",
       "_agentAllowedIP": "192.168.0.100/24",
       "_agentBlockedIP": "127.0.0.1,::1",
+      "_orphanAgentUser": "admin",
       "___userSessionIdleTimeout__": "Number of user idle minutes before auto-disconnect",
       "_userSessionIdleTimeout": 30,
       "__userConsentFlags__": "Set to: 1 for desktop, 2 for terminal, 3 for files, 7 for all",

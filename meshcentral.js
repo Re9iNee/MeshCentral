@@ -648,11 +648,11 @@ function CreateMeshCentralServer(config, args) {
         if (typeof obj.args.trustedproxy == 'string') { obj.args.trustedproxy = obj.args.trustedproxy.split(' ').join('').split(','); }
         if (typeof obj.args.tlsoffload == 'string') { obj.args.tlsoffload = obj.args.tlsoffload.split(' ').join('').split(','); }
 
-        // Check if WebSocket compression is supported. It's broken in NodeJS v11.11 to v12.15
+        // Check if WebSocket compression is supported. It's known to be broken in NodeJS v11.11 to v12.15, and v13.2
         const verSplit = process.version.substring(1).split('.');
         var ver = parseInt(verSplit[0]) + (parseInt(verSplit[1]) / 100);
-        if ((ver >= 11.11) && (ver <= 12.15)) {
-            if ((obj.args.wscompression === true) || (obj.args.agentwscompression === true)) { addServerWarning('WebSocket compression is disabled, this feature is broken in NodeJS v11.11 to v12.15.'); }
+        if (((ver >= 11.11) && (ver <= 12.15)) || (ver == 13.2)) {
+            if ((obj.args.wscompression === true) || (obj.args.agentwscompression === true)) { addServerWarning('WebSocket compression is disabled, this feature is broken in NodeJS v11.11 to v12.15 and v13.2'); }
             obj.args.wscompression = obj.args.agentwscompression = false;
             obj.config.settings.wscompression = obj.config.settings.agentwscompression = false;
         }
@@ -1427,11 +1427,13 @@ function CreateMeshCentralServer(config, args) {
                     if (Array.isArray(obj.config.domains[i].managealldevicegroups)) {
                         for (var j in obj.config.domains[i].managealldevicegroups) {
                             if (typeof obj.config.domains[i].managealldevicegroups[j] == 'string') {
-                                obj.config.settings.managealldevicegroups.push('user/' + i + '/' + obj.config.domains[i].managealldevicegroups[j]);
+                                const u = 'user/' + i + '/' + obj.config.domains[i].managealldevicegroups[j];
+                                if (obj.config.settings.managealldevicegroups.indexOf(u) == -1) { obj.config.settings.managealldevicegroups.push(u); }
                             }
                         }
                     }
                 }
+                obj.config.settings.managealldevicegroups.sort();
 
                 // Start watchdog timer if needed
                 // This is used to monitor if NodeJS is servicing IO correctly or getting held up a lot. Add this line to the settings section of config.json
@@ -1460,6 +1462,7 @@ function CreateMeshCentralServer(config, args) {
                     }, config.settings.watchdog.interval);
                     obj.debug('main', "Started watchdog timer.");
                 }
+
             });
         });
     };
@@ -2121,6 +2124,7 @@ function CreateMeshCentralServer(config, args) {
         25: { id: 25, localname: 'meshagent_armhf', rname: 'meshagent', desc: 'Linux ARM - HardFloat', update: true, amt: false, platform: 'linux', core: 'linux-noamt', rcore: 'linux-recovery', arcore: 'linux-agentrecovery' }, // "armv6l" and "armv7l"
         26: { id: 26, localname: 'meshagent_arm64', rname: 'meshagent', desc: 'Linux ARMv8-64', update: true, amt: false, platform: 'linux', core: 'linux-noamt', rcore: 'linux-recovery', arcore: 'linux-agentrecovery' }, // "aarch64"
         27: { id: 27, localname: 'meshagent_armhf2', rname: 'meshagent', desc: 'Linux ARM - HardFloat', update: true, amt: false, platform: 'linux', core: 'linux-noamt', rcore: 'linux-recovery', arcore: 'linux-agentrecovery' }, // Raspbian 7 2015-02-02 for old Raspberry Pi.
+        28: { id: 28, localname: 'meshagent_mips24kc', rname: 'meshagent', desc: 'Linux MIPS24KC (OpenWRT)', update: true, amt: false, platform: 'linux', core: 'linux-noamt', rcore: 'linux-recovery', arcore: 'linux-agentrecovery' }, // MIPS Router with OpenWRT
         30: { id: 30, localname: 'meshagent_freebsd_x86-64', rname: 'meshagent', desc: 'FreeBSD x86-64', update: true, amt: false, platform: 'freebsd', core: 'linux-noamt', rcore: 'linux-recovery', arcore: 'linux-agentrecovery' }, // FreeBSD x64
         10003: { id: 3, localname: 'MeshService.exe', rname: 'meshagent.exe', desc: 'Windows x86-32 service', update: true, amt: true, platform: 'win32', core: 'windows-amt', rcore: 'linux-recovery', arcore: 'linux-agentrecovery' }, // Unsigned version of the Windows MeshAgent x86
         10004: { id: 4, localname: 'MeshService64.exe', rname: 'meshagent.exe', desc: 'Windows x86-64 service', update: true, amt: true, platform: 'win32', core: 'windows-amt', rcore: 'linux-recovery', arcore: 'linux-agentrecovery' } // Unsigned version of the Windows MeshAgent x64
@@ -2646,6 +2650,9 @@ function mainStart() {
         // Lowercase the auth value if present
         for (var i in config.domains) { if (typeof config.domains[i].auth == 'string') { config.domains[i].auth = config.domains[i].auth.toLowerCase(); } }
 
+        // Get the current node version
+        var nodeVersion = Number(process.version.match(/^v(\d+\.\d+)/)[1]);
+
         // Check if Windows SSPI, LDAP, Passport and YubiKey OTP will be used
         var sspi = false;
         var ldap = false;
@@ -2655,6 +2662,7 @@ function mainStart() {
         var mstsc = false;
         var recordingIndex = false;
         var domainCount = 0;
+        var wildleek = false;
         if (require('os').platform() == 'win32') { for (var i in config.domains) { domainCount++; if (config.domains[i].auth == 'sspi') { sspi = true; } else { allsspi = false; } } } else { allsspi = false; }
         if (domainCount == 0) { allsspi = false; }
         for (var i in config.domains) {
@@ -2672,10 +2680,8 @@ function mainStart() {
                 if ((typeof config.domains[i].authstrategies.saml == 'object') || (typeof config.domains[i].authstrategies.jumpcloud == 'object')) { passport.push('passport-saml'); }
             }
             if ((config.domains[i].sessionrecording != null) && (config.domains[i].sessionrecording.index == true)) { recordingIndex = true; }
+            if ((config.domains[i].passwordrequirements != null) && (config.domains[i].passwordrequirements.bancommonpasswords == true)) { if (nodeVersion < 8) { config.domains[i].passwordrequirements = false; addServerWarning('Common password checking requires NodeJS v8 or above.'); } else { wildleek = true; } }
         }
-
-        // Get the current node version
-        var nodeVersion = Number(process.version.match(/^v(\d+\.\d+)/)[1]);
 
         // Build the list of required modules
         var modules = ['ws', 'cbor', 'nedb', 'https', 'yauzl', 'xmldom', 'ipcheck', 'express', 'archiver@4.0.2', 'multiparty', 'node-forge', 'express-ws', 'compression', 'body-parser', 'connect-redis', 'cookie-session', 'express-handlebars'];
@@ -2700,7 +2706,13 @@ function mainStart() {
         if (nodeVersion < 8) { modules.push('util.promisify'); }
 
         // Setup encrypted zip support if needed
-        if (config.settings.autobackup && config.settings.autobackup.zippassword) { modules.push('archiver-zip-encrypted'); }
+        if (config.settings.autobackup && config.settings.autobackup.zippassword) {
+            modules.push('archiver-zip-encrypted');
+            if (typeof config.settings.autobackup.googledrive == 'object') { if (nodeVersion >= 8) { modules.push('googleapis'); } else { delete config.settings.autobackup.googledrive; } } // Enable Google Drive Support
+        }
+
+        // Setup common password blocking
+        if (wildleek == true) { modules.push('wildleek@2.0.0'); }
 
         // Setup 2nd factor authentication
         if (config.settings.no2factorauth !== true) {

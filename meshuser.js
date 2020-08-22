@@ -63,6 +63,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
     const SITERIGHT_USERGROUPS          = 0x00000100;
     const SITERIGHT_RECORDINGS          = 0x00000200;
     const SITERIGHT_LOCKSETTINGS        = 0x00000400;
+    const SITERIGHT_ALLEVENTS           = 0x00000800;
     const SITERIGHT_ADMIN               = 0xFFFFFFFF;
 
     var obj = {};
@@ -236,6 +237,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                 } else { if (func) { func(false); } return false; }
             }
         } else { if (func) { func(false); } return false; }
+        if (func) { func(true); }
         return true;
     }
 
@@ -346,7 +348,10 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                 // Take a look at server stats
                 var os = require('os');
                 var stats = { action: 'serverstats', totalmem: os.totalmem(), freemem: os.freemem() };
-                if (parent.parent.platform != 'win32') { stats.cpuavg = os.loadavg(); }
+                if (parent.parent.platform != 'win32') {
+                    stats.cpuavg = os.loadavg();
+                    try { stats.availablemem = 1024 * Number(/MemAvailable:[ ]+(\d+)/.exec(fs.readFileSync('/proc/meminfo', 'utf8'))[1]); } catch (ex) { }
+                }
 
                 // Count the number of device groups that are not deleted
                 var activeDeviceGroups = 0;
@@ -398,7 +403,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
             var httpport = ((args.aliasport != null) ? args.aliasport : args.port);
 
             // Build server information object
-            var serverinfo = { domain: domain.id, name: domain.dns ? domain.dns : parent.certificates.CommonName, mpsname: parent.certificates.AmtMpsName, mpsport: mpsport, mpspass: args.mpspass, port: httpport, emailcheck: ((parent.parent.mailserver != null) && (domain.auth != 'sspi') && (domain.auth != 'ldap') && (args.lanonly != true) && (parent.certificates.CommonName != null) && (parent.certificates.CommonName.indexOf('.') != -1)), domainauth: (domain.auth == 'sspi'), serverTime: Date.now() };
+            var serverinfo = { domain: domain.id, name: domain.dns ? domain.dns : parent.certificates.CommonName, mpsname: parent.certificates.AmtMpsName, mpsport: mpsport, mpspass: args.mpspass, port: httpport, emailcheck: ((parent.parent.mailserver != null) && (domain.auth != 'sspi') && (domain.auth != 'ldap') && (args.lanonly != true) && (parent.certificates.CommonName != null) && (parent.certificates.CommonName.indexOf('.') != -1) && (user._id.split('/')[2].startsWith('~') == false)), domainauth: (domain.auth == 'sspi'), serverTime: Date.now() };
             serverinfo.languages = parent.renderLanguages;
             serverinfo.tlshash = Buffer.from(parent.webCertificateHashs[domain.id], 'binary').toString('hex').toUpperCase(); // SHA384 of server HTTPS certificate
             if ((parent.parent.config.domains[domain.id].amtacmactivation != null) && (parent.parent.config.domains[domain.id].amtacmactivation.acmmatch != null)) {
@@ -437,6 +442,15 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
             if (lastLoginTime != null) {
                 db.GetFailedLoginCount(user.name, user.domain, new Date(lastLoginTime * 1000), function (count) {
                     if (count > 0) { try { ws.send(JSON.stringify({ action: 'msg', type: 'notify', title: "Security Warning", tag: 'ServerNotify', id: Math.random(), value: "There has been " + count + " failed login attempts on this account since the last login." })); } catch (ex) { } delete user.pastlogin; }
+                });
+            }
+
+            // If we are site administrator and Google Drive backup is setup, send out the status.
+            if ((user.siteadmin === SITERIGHT_ADMIN) && (domain.id == '') && (typeof parent.parent.config.settings.autobackup == 'object') && (typeof parent.parent.config.settings.autobackup.googledrive == 'object')) {
+                db.Get('GoogleDriveBackup', function (err, docs) {
+                    if (err != null) return;
+                    if (docs.length == 0) { try { ws.send(JSON.stringify({ action: 'serverBackup', service: 'googleDrive', state: 1 })); } catch (ex) { } }
+                    else { try { ws.send(JSON.stringify({ action: 'serverBackup', service: 'googleDrive', state: docs[0].state })); } catch (ex) { } }
                 });
             }
 
@@ -1025,7 +1039,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                             try { info.warnings = parent.parent.getServerWarnings(); } catch (ex) { }
                             try { info.database = ["Unknown", "NeDB", "MongoJS", "MongoDB", "MariaDB", "MySQL"][parent.parent.db.databaseType]; } catch (ex) { }
                             try { info.productionMode = ((process.env.NODE_ENV != null) && (process.env.NODE_ENV == 'production')); } catch (ex) { }
-
+                            try { info.allDevGroupManagers = parent.parent.config.settings.managealldevicegroups; } catch (ex) { }
                             r = JSON.stringify(info, null, 4);
                             break;
                         }
@@ -1202,8 +1216,17 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                 }
             case 'msg':
                 {
+                    // Check the nodeid
+                    if (common.validateString(command.nodeid, 1, 1024) == false) {
+                        if (command.responseid != null) { try { ws.send(JSON.stringify({ action: 'msg', result: 'Unable to route', tag: command.tag, responseid: command.responseid })); } catch (ex) { } }
+                        return;
+                    }
+
                     // Rights check
                     var requiredRights = null, requiredNonRights = null;
+
+                    // Complete the nodeid if needed
+                    if (command.nodeid.indexOf('/') == -1) { command.nodeid = 'node/' + domain.id + '/' + command.nodeid; }
 
                     // Before routing this command, let's do some security checking.
                     // If this is a tunnel request, we need to make sure the NodeID in the URL matches the NodeID in the command.
@@ -2371,37 +2394,56 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                     // Start by checking the old password
                     parent.checkUserPassword(domain, user, command.oldpass, function (result) {
                         if (result == true) {
-                            // Update the password
-                            require('./pass').hash(command.newpass, function (err, salt, hash, tag) {
-                                if (err) {
+                            parent.checkOldUserPasswords(domain, user, command.newpass, function (result) {
+                                if (result == 1) {
                                     // Send user notification of error
-                                    displayNotificationMessage('Error, password not changed.', 'Account Settings', 'ServerNotify');
+                                    displayNotificationMessage('Error, unable to change to previously used password.', 'Account Settings', 'ServerNotify');
+                                } else if (result == 2) {
+                                    // Send user notification of error
+                                    displayNotificationMessage('Error, unable to change to commonly used password.', 'Account Settings', 'ServerNotify');
                                 } else {
-                                    // Change the password
-                                    if ((domain.passwordrequirements != null) && (domain.passwordrequirements.hint === true) && (command.hint != null)) {
-                                        var hint = command.hint;
-                                        if (hint.length > 250) { hint = hint.substring(0, 250); }
-                                        user.passhint = hint;
-                                    }
-                                    user.salt = salt;
-                                    user.hash = hash;
-                                    user.passchange = Math.floor(Date.now() / 1000);
-                                    delete user.passtype;
-                                    db.SetUser(user);
+                                    // Update the password
+                                    require('./pass').hash(command.newpass, function (err, salt, hash, tag) {
+                                        if (err) {
+                                            // Send user notification of error
+                                            displayNotificationMessage('Error, password not changed.', 'Account Settings', 'ServerNotify');
+                                        } else {
+                                            const nowSeconds = Math.floor(Date.now() / 1000);
 
-                                    var targets = ['*', 'server-users'];
-                                    if (user.groups) { for (var i in user.groups) { targets.push('server-users:' + i); } }
-                                    var event = { etype: 'user', userid: user._id, username: user.name, account: parent.CloneSafeUser(user), action: 'accountchange', msg: 'Account password changed: ' + user.name, domain: domain.id };
-                                    if (db.changeStream) { event.noact = 1; } // If DB change stream is active, don't use this event to change the user. Another event will come.
-                                    parent.parent.DispatchEvent(targets, obj, event);
+                                            // Change the password
+                                            if (domain.passwordrequirements != null) {
+                                                // Save password hint if this feature is enabled
+                                                if ((domain.passwordrequirements.hint === true) && (command.hint != null)) { var hint = command.hint; if (hint.length > 250) { hint = hint.substring(0, 250); } user.passhint = hint; } else { delete user.passhint; }
 
-                                    // Send user notification of password change
-                                    displayNotificationMessage('Password changed.', 'Account Settings', 'ServerNotify');
+                                                // Save previous password if this feature is enabled
+                                                if ((typeof domain.passwordrequirements.oldpasswordban == 'number') && (domain.passwordrequirements.oldpasswordban > 0)) {
+                                                    if (user.oldpasswords == null) { user.oldpasswords = []; }
+                                                    user.oldpasswords.push({ salt: user.salt, hash: user.hash, start: user.passchange, end: nowSeconds });
+                                                    const extraOldPasswords = user.oldpasswords.length - domain.passwordrequirements.oldpasswordban;
+                                                    if (extraOldPasswords > 0) { user.oldpasswords.splice(0, extraOldPasswords); }
+                                                }
+                                            }
+                                            user.salt = salt;
+                                            user.hash = hash;
+                                            user.passchange = nowSeconds;
+                                            delete user.passtype;
+                                            db.SetUser(user);
 
-                                    // Log in the auth log
-                                    if (parent.parent.authlog) { parent.parent.authLog('https', 'User ' + user.name + ' changed this password'); }
+                                            var targets = ['*', 'server-users'];
+                                            if (user.groups) { for (var i in user.groups) { targets.push('server-users:' + i); } }
+                                            var event = { etype: 'user', userid: user._id, username: user.name, account: parent.CloneSafeUser(user), action: 'accountchange', msg: 'Account password changed: ' + user.name, domain: domain.id };
+                                            if (db.changeStream) { event.noact = 1; } // If DB change stream is active, don't use this event to change the user. Another event will come.
+                                            parent.parent.DispatchEvent(targets, obj, event);
+
+                                            // Send user notification of password change
+                                            displayNotificationMessage('Password changed.', 'Account Settings', 'ServerNotify');
+
+                                            // Log in the auth log
+                                            if (parent.parent.authlog) { parent.parent.authLog('https', 'User ' + user.name + ' changed this password'); }
+                                        }
+                                    }, 0);
                                 }
-                            }, 0);
+                            });
                         } else {
                             // Send user notification of error
                             displayNotificationMessage('Current password not correct.', 'Account Settings', 'ServerNotify');
@@ -2592,7 +2634,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                         // Create the new device group
                         var links = {};
                         links[user._id] = { name: user.name, rights: 4294967295 };
-                        mesh = { type: 'mesh', _id: meshid, name: command.meshname, mtype: command.meshtype, desc: command.desc, domain: domain.id, links: links };
+                        mesh = { type: 'mesh', _id: meshid, name: command.meshname, mtype: command.meshtype, desc: command.desc, domain: domain.id, links: links, creation: Date.now(), creatorid: user._id, creatorname: user.name };
                         db.Set(mesh);
                         parent.meshes[meshid] = mesh;
                         parent.parent.AddEventDispatch([meshid], ws);
@@ -2611,7 +2653,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                         parent.parent.DispatchEvent(targets, obj, event);
 
                         // Event the device group creation
-                        var event = { etype: 'mesh', userid: user._id, username: user.name, meshid: meshid, name: command.meshname, mtype: command.meshtype, desc: command.desc, action: 'createmesh', links: links, msg: 'Device group created: ' + command.meshname, domain: domain.id };
+                        var event = { etype: 'mesh', userid: user._id, username: user.name, meshid: meshid, name: command.meshname, mtype: command.meshtype, desc: command.desc, action: 'createmesh', links: links, msg: 'Device group created: ' + command.meshname, domain: domain.id, creation: mesh.creation, creatorid: mesh.creatorid, creatorname: mesh.creatorname };
                         parent.parent.DispatchEvent(['*', meshid, user._id], obj, event); // Even if DB change stream is active, this event must be acted upon.
 
                         // Log in the auth log
@@ -3555,13 +3597,30 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                 }
             case 'toast':
                 {
-                    if (common.validateArray(command.nodeids, 1) == false) break; // Check nodeid's
-                    if (common.validateString(command.title, 1, 512) == false) break; // Check title
-                    if (common.validateString(command.msg, 1, 4096) == false) break; // Check message
+                    var err = null;
+
+                    // Perform input validation
+                    try {
+                        if (common.validateStrArray(command.nodeids, 1, 256) == false) { err = "Invalid nodeids"; } // Check nodeids
+                        else if (common.validateString(command.title, 1, 512) == false) { err = "Invalid title"; } // Check title
+                        else if (common.validateString(command.msg, 1, 4096) == false) { err = "Invalid message"; } // Check message
+                        else {
+                            var nodeids = [];
+                            for (i in command.nodeids) { if (command.nodeids[i].indexOf('/') == -1) { nodeids.push('node/' + domain.id + '/' + command.nodeids[i]); } else { nodeids.push(command.nodeids[i]); } }
+                            command.nodeids = nodeids;
+                        }
+                    } catch (ex) { console.log(ex); err = "Validation exception: " + ex; }
+                    
+                    // Handle any errors
+                    if (err != null) {
+                        if (command.responseid != null) { try { ws.send(JSON.stringify({ action: 'toast', responseid: command.responseid, result: err })); } catch (ex) { } }
+                        break;
+                    }
+                    
                     for (i in command.nodeids) {
                         // Get the node and the rights for this node
                         parent.GetNodeWithRights(domain, user, command.nodeids[i], function (node, rights, visible) {
-                            // Check we have the rights to delete this device
+                            // Check we have the rights to notify this device
                             if ((rights & MESHRIGHT_CHATNOTIFY) == 0) return;
 
                             // Get this device and send toast command
@@ -3571,6 +3630,9 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                             }
                         });
                     }
+
+                    // Send response if required
+                    if (command.responseid != null) { try { ws.send(JSON.stringify({ action: 'toast', responseid: command.responseid, result: 'ok' })); } catch (ex) { } }
                     break;
                 }
             case 'getnetworkinfo':
@@ -4606,6 +4668,28 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                 if (command.values != null) { message.values = command.values; }
                 if (typeof command.logmsg == 'string') { message.msg = command.logmsg; } else { message.nolog = 1; }
                 parent.parent.DispatchEvent(['*', user._id], obj, message);
+                break;
+            }
+            case 'serverBackup': {
+                if ((user.siteadmin != SITERIGHT_ADMIN) || (typeof parent.parent.config.settings.autobackup.googledrive != 'object')) return;
+                if (command.service == 'googleDrive') {
+                    if (command.state == 0) {
+                        parent.db.Remove('GoogleDriveBackup', function () { try { ws.send(JSON.stringify({ action: 'serverBackup', service: 'googleDrive', state: 1 })); } catch (ex) { } });
+                    } else if (command.state == 1) {
+                        const {google} = require('googleapis');
+                        obj.oAuth2Client = new google.auth.OAuth2(command.clientid, command.clientsecret, "urn:ietf:wg:oauth:2.0:oob");
+                        obj.oAuth2Client.xxclientid = command.clientid;
+                        obj.oAuth2Client.xxclientsecret = command.clientsecret;
+                        const authUrl = obj.oAuth2Client.generateAuthUrl({ access_type: 'offline', scope: ['https://www.googleapis.com/auth/drive.file'] });
+                        try { ws.send(JSON.stringify({ action: 'serverBackup', service: 'googleDrive', state: 2, url: authUrl })); } catch (ex) { }
+                    } else if ((command.state == 2) && (obj.oAuth2Client != null)) {
+                        obj.oAuth2Client.getToken(command.code, function (err, token) {
+                            if (err != null) { console.log('GoogleDrive (getToken) error: ', err); return; }
+                            parent.db.Set({ _id: 'GoogleDriveBackup', state: 3, clientid: obj.oAuth2Client.xxclientid, clientsecret: obj.oAuth2Client.xxclientsecret, token: token });
+                            try { ws.send(JSON.stringify({ action: 'serverBackup', service: 'googleDrive', state: 3 })); } catch (ex) { }
+                        });
+                    }
+                }
                 break;
             }
             default: {

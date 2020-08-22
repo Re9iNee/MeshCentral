@@ -10,6 +10,7 @@
     <link rel="shortcut icon" href="{{{domainurl}}}favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="{{{domainurl}}}favicon-16x16.png">
     <link rel="icon" type="image/png" sizes="32x32" href="{{{domainurl}}}favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/favicon-303x303.png" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="#ffffff">
     <meta name="apple-mobile-web-app-title" content="{{{title}}}">
@@ -345,6 +346,40 @@
         .deviceBatterySmall9 { background: url(../images/batteries24.png) -112px 0px; }
         .deviceBatterySmall10 { background: url(../images/batteries24.png) -126px 0px; }
         .deviceBatterySmall11 { background: url(../images/batteries24.png) -140px 0px; }
+
+        .devList1 {
+            height: 50px;
+            cursor: pointer;
+            position: relative;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .devList2 {
+            float: left;
+            margin-left: 4px
+        }
+
+        .devList3 {
+            width: auto;
+            height: 40px;
+            background-color: lightgray;
+            margin-left: 60px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            border-radius: 8px 0px 0px 8px;
+        }
+
+        .devList4 {
+            padding-left: 12px;
+            padding-top: 2px;
+        }
+
+        .devList5 {
+            padding-left: 12px;
+            padding-top: 3px;
+            color: gray
+        }
     </style>
 </head>
 <body onload="if (typeof(startup) !== 'undefined') startup();" style="overflow-y:hidden;margin:0;padding:0;border:0;color:black;font-size:13px;font-family:\'Trebuchet MS\', Arial, Helvetica, sans-serif">
@@ -374,7 +409,7 @@
                     </div>
                 </div>
                 <div id=p2 style="display:none;position:absolute;top:0;left:0;right:0;bottom:0">
-                    <div id=xdevices style="position:absolute;overflow-y:auto;top:0;left:0;right:0;bottom:30px"></div>
+                    <div id=xdevices style="position:absolute;overflow-y:auto;top:0;left:0;right:0;bottom:30px" onscroll="onDevicesScroll()" ontouchstart="onDeviceTouch(true)" ontouchend="onDeviceTouch(false)"></div>
                     <div id=xdevicesBar style="position:absolute;overflow-y:auto;height:30px;left:0;right:0;bottom:0px;background-color:#aaa">
                         <div style="margin:4px">
                             <span style="width:20px;display:inline-block;text-align:center;cursor:pointer" onclick=clearSearchInput()><b>X</b></span>
@@ -815,7 +850,7 @@
         var debugmode = false;
         var attemptWebRTC = ((features & 128) != 0);
         var StatusStrs = ["Disconnected", "Connecting...", "Setup...", "Connected", "Intel&reg; AMT Connected"];
-        var agentsStr = ["Unknown", "Windows 32bit console", "Windows 64bit console", "Windows 32bit service", "Windows 64bit service", "Linux 32bit", "Linux 64bit", "MIPS", "XENx86", "Android ARM", "Linux ARM", "MacOS 32bit", "Android x86", "PogoPlug ARM", "Android APK", "Linux Poky x86-32bit", "MacOS 64bit", "ChromeOS", "Linux Poky x86-64bit", "Linux NoKVM x86-32bit", "Linux NoKVM x86-64bit", "Windows MinCore console", "Windows MinCore service", "NodeJS", "ARM-Linaro", "ARMv6l / ARMv7l", "ARMv8 64bit", "ARMv6l / ARMv7l / NoKVM", "Unknown", "Unknown", "FreeBSD x86-64"];
+        var agentsStr = ["Unknown", "Windows 32bit console", "Windows 64bit console", "Windows 32bit service", "Windows 64bit service", "Linux 32bit", "Linux 64bit", "MIPS", "XENx86", "Android ARM", "Linux ARM", "MacOS 32bit", "Android x86", "PogoPlug ARM", "Android APK", "Linux Poky x86-32bit", "MacOS 64bit", "ChromeOS", "Linux Poky x86-64bit", "Linux NoKVM x86-32bit", "Linux NoKVM x86-64bit", "Windows MinCore console", "Windows MinCore service", "NodeJS", "ARM-Linaro", "ARMv6l / ARMv7l", "ARMv8 64bit", "ARMv6l / ARMv7l / NoKVM", "MIPS24KC (OpenWRT)", "Unknown", "FreeBSD x86-64"];
         var files;
         var passRequirements = '{{{passRequirements}}}';
         if (passRequirements != '') { passRequirements = JSON.parse(decodeURIComponent(passRequirements)); }
@@ -1140,6 +1175,7 @@
                                     updateDevices();
                                     if (Q('SearchInput').value == '*') { onSearchInputChanged(); }
                                 }
+                                if (currentNode) { refreshDevice(currentNode._id); }
                             }
                             break;
                         }
@@ -2169,65 +2205,7 @@
                 }
 
                 count++;
-                var title = EscapeHtml(nodes[i].name);
-                if (title.length == 0) { title = '<i>' + "None" + '</i>'; }
-                if ((nodes[i].rname != null) && (nodes[i].rname.length > 0)) { title += ' / ' + EscapeHtml(nodes[i].rname); }
-                var name = EscapeHtml(nodes[i].name);
-                if (showRealNames == true && nodes[i].rname != null) name = EscapeHtml(nodes[i].rname);
-                if (name.length == 0) { name = '<i>' + "None" + '</i>'; }
-
-                // Add device notification icons
-                var devNotify = '', devNotifySub = '';
-
-                // This device is "starred"
-                if (stars[nodes[i]._id] == 1) {
-                    devNotifySub += '<img class=deviceNotifyDotSub src=images/icon-star-notify-16.png width=16 height=16>';
-                }
-
-                // This device has session information
-                if (nodes[i].sessions != null) {
-                    // Display any agent messages
-                    if (nodes[i].sessions.msg != null) {
-                        devNotifySub += '<div style="width:16;height:16" class=deviceNotifyDotSub>' + Object.keys(nodes[i].sessions.msg).length + '</div>';
-                    }
-
-                    // Sessions are active
-                    if ((nodes[i].sessions.kvm != null) || (nodes[i].sessions.terminal != null) || (nodes[i].sessions.files != null) || (nodes[i].sessions.tcp != null) || (nodes[i].sessions.udp != null)) {
-                        devNotifySub += '<img class=deviceNotifyDotSub src=images/icon-relay-notify.png width=16 height=16>';
-                    }
-
-                    // Battery state
-                    if (nodes[i].sessions.battery != null) {
-                        var bat = nodes[i].sessions.battery;
-                        var statestr = '';
-                        if (bat.state == 'ac') { statestr = "Device is plugged-in"; }
-                        if (bat.state == 'dc') { statestr = "Device is battery powered"; }
-
-                        var levelstr = '', levelnum = -1;
-                        if ((typeof bat.level == 'number') && (bat.level >= 0) && (bat.level <= 100)) {
-                            levelstr = bat.level + '%';
-                            levelnum = (Math.floor((bat.level + 10) / 25) + 1);
-                            if (levelnum > 5) { lvl = 5; }
-                            if (bat.state == 'ac') { if (bat.level == 100) { levelnum = 11; } else { levelnum += 5; } }
-                        }
-
-                        if (levelnum > 0) {
-                            devNotify += '<div class="deviceBatterySmall deviceBatterySmall' + levelnum + '" title="' + ((statestr != null) ? (statestr + ', ' + levelstr) : levelstr) + '"></div>';
-                        }
-                    }
-                }
-
-                // Add any device icons
-                if (devNotifySub != '') { devNotify += '<div class=deviceNotifyDot>' + devNotifySub + '</div>'; }
-
-                // Node
-                var icon = nodes[i].icon, nodestate = NodeStateStr(nodes[i]);
-                if ((!nodes[i].conn) || (nodes[i].conn == 0)) { icon += ' gray'; }
-                r += '<div style=cursor:pointer;position:relative onclick=goForward(\'' + nodes[i]._id + '\')>' + devNotify;
-                r += '<div class="i' + icon + '" style="float:left;margin-left:4px"></div>';
-                r += '<div style="width:auto;height:40px;background-color:lightgray;margin-top:5px;margin-bottom:5px;margin-left:60px;padding-top:5px;padding-bottom:5px;border-radius:8px 0px 0px 8px">';
-                r += '<div><div style=padding-left:12px;padding-top:2px><b>' + name + '</b></div><div style=padding-left:12px;padding-top:3px;color:gray>' + nodestate + '</div></div>';
-                r += '</div></div>';
+                r += '<div name=xxdevice class=devList1 id=\'' + nodes[i]._id + '\'></div>'; // This is a standin for the device, it gets rendered only if visible.
 
                 // If we are displaying devices by group, put the device in the right group.
                 /*
@@ -2280,6 +2258,91 @@
             deviceHeaderSet();
             for (var i in deviceHeaders) { QH(i, deviceHeaders[i]); }
             for (var i in deviceHeadersTitles) { Q(i).title = deviceHeadersTitles[i]; }
+            onDevicesScrollEx();
+        }
+
+        var onDevicesTouchActive = false;
+        var onDevicesScrollnagleTimer = null;
+        function onDevicesScroll() {
+            if (onDevicesScrollnagleTimer != null) { clearTimeout(onDevicesScrollnagleTimer); onDevicesScrollnagleTimer = null; }
+            if (onDevicesTouchActive) return;
+            onDevicesScrollnagleTimer = setTimeout(onDevicesScrollEx, 50);
+        }
+
+        function onDeviceTouch(x) {
+            if (onDevicesTouchActive == x) return;
+            onDevicesTouchActive = x;
+            if (x == false) onDevicesScrollEx();
+        }
+
+        function onDevicesScrollEx() {
+            onDevicesScrollnagleTimer = null;
+            var visibleTop = Q('xdevices').scrollTop - 250, visibleBottom = Q('xdevices').scrollTop + Q('xdevices').clientHeight + 250, devdivs = document.getElementsByName('xxdevice');
+            for (var i = 0; i < devdivs.length; i++) {
+                if ((devdivs[i].offsetTop >= visibleTop) && (devdivs[i].offsetTop < visibleBottom)) {
+                    // Show
+                    var node = getNodeFromId(devdivs[i].id)
+                    if (node == null) break;
+
+                    var title = EscapeHtml(node.name);
+                    if (title.length == 0) { title = '<i>' + "None" + '</i>'; }
+                    if ((node.rname != null) && (node.rname.length > 0)) { title += ' / ' + EscapeHtml(node.rname); }
+                    var name = EscapeHtml(node.name);
+                    if (showRealNames == true && node.rname != null) name = EscapeHtml(node.rname);
+                    if (name.length == 0) { name = '<i>' + "None" + '</i>'; }
+
+                    // Add device notification icons
+                    var devNotify = '', devNotifySub = '';
+
+                    // This device is "starred"
+                    if (stars[node._id] == 1) {
+                        devNotifySub += '<img class=deviceNotifyDotSub src=images/icon-star-notify-16.png width=16 height=16>';
+                    }
+
+                    // This device has session information
+                    if (node.sessions != null) {
+                        // Display any agent messages
+                        if (node.sessions.msg != null) {
+                            devNotifySub += '<div style="width:16;height:16" class=deviceNotifyDotSub>' + Object.keys(node.sessions.msg).length + '</div>';
+                        }
+
+                        // Sessions are active
+                        if ((node.sessions.kvm != null) || (node.sessions.terminal != null) || (node.sessions.files != null) || (node.sessions.tcp != null) || (node.sessions.udp != null)) {
+                            devNotifySub += '<img class=deviceNotifyDotSub src=images/icon-relay-notify.png width=16 height=16>';
+                        }
+
+                        // Battery state
+                        if (node.sessions.battery != null) {
+                            var bat = node.sessions.battery;
+                            var statestr = '';
+                            if (bat.state == 'ac') { statestr = "Device is plugged-in"; }
+                            else if (bat.state == 'dc') { statestr = "Device is battery powered"; }
+
+                            var levelstr = '', levelnum = -1;
+                            if ((typeof bat.level == 'number') && (bat.level >= 0) && (bat.level <= 100)) {
+                                levelstr = bat.level + '%';
+                                levelnum = (Math.floor((bat.level + 10) / 25) + 1);
+                                if (levelnum > 5) { lvl = 5; }
+                                if (bat.state == 'ac') { if (bat.level == 100) { levelnum = 11; } else { levelnum += 5; } }
+                            }
+
+                            if (levelnum > 0) {
+                                devNotify += '<div class="deviceBatterySmall deviceBatterySmall' + levelnum + '" title="' + ((statestr != null) ? (statestr + ', ' + levelstr) : levelstr) + '"></div>';
+                            }
+                        }
+                    }
+
+                    // Add any device icons
+                    if (devNotifySub != '') { devNotify += '<div class=deviceNotifyDot>' + devNotifySub + '</div>'; }
+
+                    // Node
+                    var icon = node.icon, nodestate = NodeStateStr(node);
+                    if ((!node.conn) || (node.conn == 0)) { icon += ' gray'; }
+                    devdivs[i].innerHTML = '<div onclick=goForward(\'' + node._id + '\')>' + devNotify + '<div class="i' + icon + ' devList2"></div><div class=devList3><div class=devList4><b>' + name + '</b></div><div class=devList5>' + nodestate + '</div></div></div>';
+                } else {
+                    devdivs[i].innerHTML = ''; // Hide
+                }
+            }
         }
 
         // Show currently active sessions on this device
@@ -3303,27 +3366,31 @@
         var p13filetreelocation = [];
 
         function p13gotFiles(data) {
-            setSessionActivity();
-            //console.log('p13gotFiles', data);
-            if ((data.length > 0) && (data.charCodeAt(0) != 123)) { p13gotDownloadBinaryData(data); return; }
+            if ((data.length > 0) && (data.charCodeAt(0) != 123)) { p13gotDownloadBinaryData(data); return; } // This is ok because 4 first bytes is a control value.
             //console.log('p13gotFiles', data);
             data = JSON.parse(decode_utf8(data));
             if (data.action == 'download') { p13gotDownloadCommand(data); return; }
-            data.path = data.path.replace(/\//g, '\\');
-            if ((p13filetree != null) && (data.path == p13filetree.path)) {
-                // This is an update to the same folder
-                var checkedNames = p13getCheckedNames();
-                p13filetree = data;
-                p13updateFiles(checkedNames);
-            } else {
-                // Make both paths use the same seperator not start with /
-                var x1 = data.path.replace(/\//g, '\\'), x2 = p13targetpath.replace(/\//g, '\\');
-                while ((x1.length > 0) && (x1[0] == '\\')) { x1 = x1.substring(1); }
-                while ((x2.length > 0) && (x2[0] == '\\')) { x2 = x2.substring(1); }
-                if ((x1 == x2) || ((data.path == '\\') && (p13targetpath == ''))) {
-                    // This is a different folder
+
+            // Process file upload commands
+            if ((data.action != null) && (data.action.startsWith('upload'))) { p13gotUploadData(data); return; }
+
+            if (data.path != null) {
+                data.path = data.path.replace(/\//g, '\\');
+                if ((p13filetree != null) && (data.path == p13filetree.path)) {
+                    // This is an update to the same folder
+                    var checkedNames = p13getCheckedNames();
                     p13filetree = data;
-                    p13updateFiles();
+                    p13updateFiles(checkedNames);
+                } else {
+                    // Make both paths use the same seperator not start with /
+                    var x1 = data.path.replace(/\//g, '\\'), x2 = p13targetpath.replace(/\//g, '\\');
+                    while ((x1.length > 0) && (x1[0] == '\\')) { x1 = x1.substring(1); }
+                    while ((x2.length > 0) && (x2[0] == '\\')) { x2 = x2.substring(1); }
+                    if ((x1 == x2) || ((data.path == '\\') && (p13targetpath == ''))) {
+                        // This is a different folder
+                        p13filetree = data;
+                        p13updateFiles();
+                    }
                 }
             }
         }
@@ -3613,35 +3680,35 @@
         var uploadFile;
         function p13doUploadFiles(files) {
             if (xxdialogMode) return;
+
+            // Check if we are going to overwrite any files
+            var winAgent = ((currentNode.agent.id > 0) && (currentNode.agent.id < 5));
+            var targetFiles = [], overWriteCount = 0;
+            for (var i in p13filetree.dir) { if (winAgent) { targetFiles.push(p13filetree.dir[i].n.toLowerCase()); } else { targetFiles.push(p13filetree.dir[i].n); } }
+            for (var i = 0; i < files.length; i++) {
+                if (winAgent) {
+                    if (targetFiles.indexOf(files[i].name.toLowerCase()) >= 0) { overWriteCount++; }
+                } else {
+                    if (targetFiles.indexOf(files[i].name) >= 0) { overWriteCount++; }
+                }
+            }
+
+            if (overWriteCount == 0) {
+                // If no overwrite, go ahead with upload
+                p13uploadFileContinue(1, files);
+            } else {
+                // Otherwise, prompt for confirmation
+                setDialogMode(2, "Upload File", 3, p13uploadFileContinue, format((overWriteCount == 1) ? "Upload will overwrite 1 file. Continue?" : "Upload will overwrite {0} files. Continue?", overWriteCount), files);
+            }
+        }
+
+        function p13uploadFileContinue(b, files) {
             uploadFile = {};
             uploadFile.xpath = p13filetreelocation.join('/');
             uploadFile.xfiles = files;
             uploadFile.xfilePtr = -1;
             setDialogMode(2, "Upload File", 10, p13uploadFileCancel, '<div id=p13dfileName>' + "Connecting..." + '</div><br /><progress id=d2progressBar style=width:100% value=0 max=0 />');
-            p13uploadReconnect();
-        }
-
-        function onFileUploadStateChange(xdownloadFile, state) {
-            switch (state) {
-                case 0:
-                    p13folderup(9999);
-                    break;
-                case 3:
-                    p13uploadNextFile();
-                    break;
-                default:
-                    console.log('Unknown onFileUploadStateChange state', state);
-                    break;
-            }
-        }
-
-        // Connect again
-        function p13uploadReconnect() {
-            uploadFile.ws = CreateAgentRedirect(meshserver, CreateRemoteFiles(p13gotUploadData), serverPublicNamePort, authCookie, authRelayCookie, domainUrl);
-            uploadFile.ws.attemptWebRTC = false;
-            uploadFile.ws.ctrlMsgAllowed = false;
-            uploadFile.ws.onStateChanged = onFileUploadStateChange;
-            uploadFile.ws.Start(filesNode._id);
+            p13uploadNextFile();
         }
 
         // Push the next file
@@ -3653,61 +3720,69 @@
                 QH('p13dfileName', file.name);
                 Q('d2progressBar').max = file.size;
                 Q('d2progressBar').value = 0;
-
-                uploadFile.xreader = new FileReader();
-                uploadFile.xreader.onload = function () {
-                    uploadFile.xdata = uploadFile.xreader.result;
-                    uploadFile.ws.sendText({ action: 'upload', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: file.name, size: uploadFile.xdata.byteLength });
-                };
-                uploadFile.xreader.readAsArrayBuffer(file);
+                if (file.xdata == null) {
+                    // Load the data
+                    uploadFile.xreader = new FileReader();
+                    uploadFile.xreader.onload = function () {
+                        uploadFile.xdata = uploadFile.xreader.result;
+                        files.sendText(JSON.stringify({ action: 'upload', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: file.name, size: uploadFile.xdata.byteLength }));
+                    };
+                    uploadFile.xreader.readAsArrayBuffer(file);
+                } else {
+                    // Data already loaded
+                    uploadFile.xdata = file.xdata;
+                    files.sendText(JSON.stringify({ action: 'upload', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: file.name, size: uploadFile.xdata.byteLength }));
+                }
             } else {
-                p13uploadFileCancel();
+                p13uploadFileTransferDone();
             }
         }
 
         // Used to cancel the entire transfer.
         function p13uploadFileCancel(button, tag) {
-            if (uploadFile != null) {
-                if (uploadFile.ws != null) {
-                    uploadFile.ws.Stop();
-                    uploadFile.ws = null;
-                }
-                uploadFile = null;
-            }
-            setDialogMode(0); // Close any dialog boxes if present
+            if (uploadFile != null) { files.sendText(JSON.stringify({ action: 'uploadcancel', reqid: uploadFile.xfilePtr })); uploadFile = null; }
+            p13uploadFileTransferDone();
+        }
+
+        // Used to cancel the entire transfer.
+        function p13uploadFileTransferDone() {
+            uploadFile = null; // No more files to upload, clean up.
+            setDialogMode(0); // Close the dialog box
+            p13folderup(9999); // Refresh the current folder
         }
 
         // Receive upload ack from the mesh agent, use this to keep sending more data
-        function p13gotUploadData(data) {
-            var cmd = JSON.parse(data);
+        function p13gotUploadData(cmd) {
             if ((uploadFile == null) || (parseInt(uploadFile.xfilePtr) != parseInt(cmd.reqid))) { return; }
-
-            if (cmd.action == 'uploadstart') {
-                p13uploadNextPart(false);
-                for (var i = 0; i < 8; i++) { p13uploadNextPart(true); } // Send 8 more blocks of 4 k to full the websocket.
-            } else if (cmd.action == 'uploadack') {
-                p13uploadNextPart(false);
-            } else if (cmd.action == 'uploaderror') {
-                p13uploadFileCancel();
+            switch (cmd.action) {
+                case 'uploadstart': { p13uploadNextPart(false); for (var i = 0; i < 8; i++) { p13uploadNextPart(true); } break; } // Send 8 more blocks of 16k to fill the websocket.
+                case 'uploadack': { p13uploadNextPart(false); break; }
+                case 'uploaddone': { if (uploadFile.xfiles.length > uploadFile.xfilePtr + 1) { p13uploadNextFile(); } else { p13uploadFileTransferDone(); } break; }
+                case 'uploaderror': { p13uploadFileCancel(); break; }
             }
         }
 
         // Push the next part of the file into the websocket. If dataPriming is true, push more data only if it's not the last block of the file.
         function p13uploadNextPart(dataPriming) {
-            var data = uploadFile.xdata;
-            var start = uploadFile.xptr;
-            var end = uploadFile.xptr + 4096;
-            if (end > data.byteLength) { if (dataPriming == true) { return; } end = data.byteLength; }
-            if (start == data.byteLength) {
-                if (uploadFile.ws != null) { uploadFile.ws.Stop(); uploadFile.ws = null; }
-                if (uploadFile.xfiles.length > uploadFile.xfilePtr + 1) { p13uploadReconnect(); } else { p13uploadFileCancel(); }
+            var data = uploadFile.xdata, start = uploadFile.xptr;
+            if (start >= data.byteLength) {
+                files.sendText(JSON.stringify({ action: 'uploaddone', reqid: uploadFile.xfilePtr }));
             } else {
-                var datapart = data.slice(start, end);
-                uploadFile.ws.send(datapart);
+                var end = uploadFile.xptr + 16384;
+                if (end > data.byteLength) { if (dataPriming == true) { return; } end = data.byteLength; }
+                var dataslice = new Uint8Array(data.slice(start, end))
+                if ((dataslice[0] == 123) || (dataslice[0] == 0)) {
+                    var datapart = new Uint8Array(end - start + 1);
+                    datapart.set(dataslice, 1); // Add a zero char at the start of the send, this will indicate that it's not a JSON command.
+                    files.send(datapart);
+                } else {
+                    files.send(dataslice); // The data does not start with 0 or 123 "{" so it can't be confused for JSON.
+                }
                 uploadFile.xptr = end;
                 Q('d2progressBar').value = end;
             }
         }
+
         //
         // DEVICE DETAILS
         //
@@ -4323,7 +4398,7 @@
 
         function putstore(name, val) { try { if ((typeof (localStorage) === 'undefined') || (localStorage.getItem(name) == val)) return; if (val == null) { localStorage.removeItem(name); } else { localStorage.setItem(name, val); } } catch (e) { } if (name[0] != '_') { var s = {}; for (var i = 0, len = localStorage.length; i < len; ++i) { var k = localStorage.key(i); if (k[0] != '_') { s[k] = localStorage.getItem(k); } } meshserver.send({ action: 'userWebState', state: JSON.stringify(s) }); } }
         function getstore(name, val) { try { if (typeof (localStorage) === 'undefined') return val; var v = localStorage.getItem(name); if ((v == null) || (v == null)) return val; return v; } catch (e) { return val; } }
-        function center() { QS('dialog').left = ((((getDocWidth() - 300) / 2)) + 'px'); deskAdjust(); deskAdjust(); /*drawDeviceTimeline();*/ }
+        function center() { onDevicesScroll(); QS('dialog').left = ((((getDocWidth() - 300) / 2)) + 'px'); deskAdjust(); deskAdjust(); /*drawDeviceTimeline();*/ }
         function messagebox(t, m) { QH('id_dialogMessage', m); setDialogMode(1, t, 1); }
         function statusbox(t, m) { QH('id_dialogMessage', m); setDialogMode(1, t); }
         function getDocWidth() { if (window.innerWidth) return window.innerWidth; if (document.documentElement && document.documentElement.clientWidth && document.documentElement.clientWidth != 0) return document.documentElement.clientWidth; return document.getElementsByTagName('body')[0].clientWidth; }

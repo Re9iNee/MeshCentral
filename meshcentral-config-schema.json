@@ -54,6 +54,7 @@
         "agentsInRam": { "type": "boolean", "default": false, "description": "Loads all agent binaries in RAM for faster agent updates." },
         "agentPing": { "type": "integer", "minimum": 1, "description": "When specified, sends data to the agent at x seconds interval and expects a response from the agent." },
         "agentPong": { "type": "integer", "minimum": 1, "description": "When specified, sends data to the agent at x seconds interval." },
+        "orphanAgentUser": { "type": "string", "default": null, "description": "If an agent attempts to connect to a unknown device group, automatically create a new device group and grant access to the specified user. Example: admin" },
         "agentIdleTimeout": { "type": "integer", "minimum": 1 },
         "compression": { "type": "boolean", "default": true, "description": "Enables GZIP compression for web requests." },
         "wscompression": { "type": "boolean", "default": false, "description": "Enables server-side, websocket per-message deflate compression." },
@@ -106,7 +107,15 @@
             "backupIntervalHours": { "type": "integer" },
             "keepLastDaysBackup": { "type": "integer" },
             "zipPassword": { "type": "string" },
-            "backupPath": { "type": "string" }
+            "backupPath": { "type": "string" },
+            "googleDrive": {
+              "type": "object",
+              "description": "Enabled automated upload of the server backups to a Google Drive account, once enabled you need to go in \"My Server\" tab as administrator to associate the account.",
+              "properties": {
+                "folderName": { "type": "integer", "default": "MeshCentral-Backups", "description": "The name of the folder to create in the Google Drive account." },
+                "maxFiles": { "type": "string", "default": null, "description": "The maximum number of files to keep in the Google Drive folder, older files will be removed if needed." }
+              }
+            }
           }
         },
         "redirects": { "type": "object" },
@@ -143,23 +152,25 @@
           "userNameIsEmail": { "type": "boolean", "default": false, "description": "When enabled, the username of each account is also the email address of the account." },
           "newAccountEmailDomains": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
           "newAccountsRights": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
-          "welcomeText": { "type": "string" },
-          "welcomePicture": { "type": "string" },
+          "welcomeText": { "type": "string", "description": "Text that will be shown on the login screen." },
+          "welcomePicture": { "type": "string", "description": "Name of the JPG file that will be shown on the login screen. Out this file in the meshcentral-data folder and place the name here." },
           "hide": { "type": "integer" },
           "footer": { "type": "string" },
-          "certUrl": { "type": "string", "format": "uri" },
+          "certUrl": { "type": "string", "format": "uri", "description": "https url when to get the TLS certificate that MeshAgent's will see when connecting to this server. This setting is used when a reverse proxy like NGINX is used in front of MeshCentral." },
           "passwordRequirements": {
             "type": "object",
             "properties": {
-              "min": { "type": "integer" },
-              "max": { "type": "integer" },
-              "upper": { "type": "integer" },
-              "lower": { "type": "integer" },
-              "numeric": { "type": "integer" },
-              "nonalpha": { "type": "integer" },
-              "reset": { "type": "integer" },
-              "force2factor": { "type": "boolean" },
-              "skip2factor": { "type": "string" }
+              "min": { "type": "integer", "description": "Minimum number of characters allowed for the account password." },
+              "max": { "type": "integer", "description": "Maximum number of characters allowed for the account password." },
+              "upper": { "type": "integer", "description": "Minimum number of upper case characters required in the password." },
+              "lower": { "type": "integer", "description": "Minimum number of lower case characters required in the password." },
+              "numeric": { "type": "integer", "description": "Minimum number of numeric characters required in the password." },
+              "nonalpha": { "type": "integer", "description": "Minimum number of non-alpha-numeric characters required in the password." },
+              "reset": { "type": "integer", "description": "Number of days after which the user is required to change the account password." },
+              "force2factor": { "type": "boolean", "description": "Requires that all accounts setup 2FA." },
+              "skip2factor": { "type": "string", "description": "IP addresses where 2FA login is skipped, for example: 127.0.0.1,192.168.2.0/24" },
+              "oldPasswordBan": { "type": "integer", "description": "Number of old passwords the server should remember and not allow the user to switch back to." },
+              "banCommonPasswords": { "type": "boolean", "description": "Uses WildLeek to block use of the 10000 most commonly used passwords." }
             }
           },
           "agentInviteCodes": { "type": "boolean", "default": false, "description": "Enabled a feature where you can set one or more invitation codes in a device group. You can then give a invitation link to users who can use it to download the agent." },
