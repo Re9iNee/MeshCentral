@@ -11,7 +11,6 @@
     <link type="text/css" href="styles/ol.css" media="screen" rel="stylesheet" title="CSS" />
     <link type="text/css" href="styles/ol3-contextmenu.min.css" media="screen" rel="stylesheet" title="CSS" />
     <link type="text/css" href="styles/xterm.css" media="screen" rel="stylesheet" title="CSS" />
-    <link rel="apple-touch-icon" href="/favicon-303x303.png" />
     <script type="text/javascript" src="scripts/common-0.0.1{{{min}}}.js"></script>
     <script type="text/javascript" src="scripts/meshcentral{{{min}}}.js"></script>
     <script type="text/javascript" src="scripts/amt-0.2.0{{{min}}}.js"></script>
@@ -42,7 +41,7 @@
     <div id="contextMenu" class="contextMenu noselect" style="display:none">
         <div id="cxinfo" class="cmtext" onclick="cmaction(1,event)"><b>Information</b></div>
         <div id="cxdesktop" class="cmtext" onclick="cmaction(3,event)">Desktop</div>
-        {{!-- <div id="cxterminal" class="cmtext" onclick="cmaction(2,event)">Terminal</div> --}}
+        <div id="cxterminal" class="cmtext" onclick="cmaction(2,event)">Terminal</div>
         <div id="cxfiles" class="cmtext" onclick="cmaction(4,event)">Files</div>
         <div id="cxevents" class="cmtext" onclick="cmaction(5,event)">Events</div>
         <div id="cxdetails" class="cmtext" onclick="cmaction(6,event)">Details</div>
@@ -158,7 +157,7 @@
                             <tr>
                                 <td tabindex=0 id=MainDev class="topbar_td style3x" onclick=go(10,event) onkeypress="if (event.key == 'Enter') go(10)">General</td>
                                 <td tabindex=0 id=MainDevDesktop class="topbar_td style3x" onclick=go(11,event) onkeypress="if (event.key == 'Enter') go(11)">Desktop</td>
-                                {{!-- <td tabindex=0 id=MainDevTerminal class="topbar_td style3x" onclick=go(12,event) onkeypress="if (event.key == 'Enter') go(12)">Terminal</td> --}}
+                                <td tabindex=0 id=MainDevTerminal class="topbar_td style3x" onclick=go(12,event) onkeypress="if (event.key == 'Enter') go(12)">Terminal</td>
                                 <td tabindex=0 id=MainDevFiles class="topbar_td style3x" onclick=go(13,event) onkeypress="if (event.key == 'Enter') go(13)">Files</td>
                                 <td tabindex=0 id=MainDevEvents class="topbar_td style3x" onclick=go(16,event) onkeypress="if (event.key == 'Enter') go(16)">Events</td>
                                 <td tabindex=0 id=MainDevInfo class="topbar_td style3x" onclick=go(17,event) onkeypress="if (event.key == 'Enter') go(17)">Details</td>
@@ -458,12 +457,11 @@
                     </div>
                     <div id="p2ServerActions">
                         <p><strong>Server actions</strong></p>
-                        <div style="margin-left:25px">
-                            <div id="p2ServerActionsBackup"><div class="p2AccountActions"><span style="display:none"><strong>&#x2713;</strong></span></div><a href="{{{domainurl}}}backup.zip" rel="noreferrer noopener" target="_blank">Download server backup</a></div>
-                            <div id="p2ServerActionsRestore"><div class="p2AccountActions"><span style="display:none"><strong>&#x2713;</strong></span></div><a href=# onclick="return server_showRestoreDlg()">Restore server with backup</a></div>
-                            <div id="p2ServerActionsGoogleBackup"  style="display:none"><div class="p2AccountActions"><span id="p2ServerActionsGoogleBackupCheck" style="display:none"><strong>&#x2713;</strong></span></div><span><a href=# onclick="return server_setupGoogleDriveBackup()">Google Drive backup</a><br /></span></div>
-                            <div id="p2ServerActionsVersion"><div class="p2AccountActions"><span style="display:none"><strong>&#x2713;</strong></span></div><a href=# onclick="return server_showVersionDlg()">Check server version</a></div>
-                            <div id="p2ServerActionsErrors"><div class="p2AccountActions"><span style="display:none"><strong>&#x2713;</strong></span></div><a href=# onclick="return server_showErrorsDlg()">Show server error log</a></div>
+                        <div class="mL">
+                            <div id="p2ServerActionsBackup"><a href="{{{domainurl}}}backup.zip" rel="noreferrer noopener" target="_blank">Download server backup</a></div>
+                            <div id="p2ServerActionsRestore"><a href=# onclick="return server_showRestoreDlg()">Restore server with backup</a></div>
+                            <div id="p2ServerActionsVersion"><a href=# onclick="return server_showVersionDlg()">Check server version</a></div>
+                            <div id="p2ServerActionsErrors"><a href=# onclick="return server_showErrorsDlg()">Show server error log</a></div>
                         </div>
                     </div>
                     <br /><strong>Server Statistics</strong><br /><br />
@@ -546,7 +544,7 @@
                         <div>
                             <div id="idx_deskFullBtn2" onclick=deskToggleFull(event)>&nbsp;&#x2716;</div>
                             <input type="button" id="autoconnectbutton1" value="AutoConnect" onclick=autoConnectDesktop(event) onkeypress="return false" onkeydown="return false" style="display:none" />
-                            <span id=connectbutton1span><input type=button id=connectbutton1 cmenu="deskConnectButton" value="Connect" onclick='connectDesktop(event,3, null, 0x0008)' onkeypress="return false" onkeydown="return false" disabled="disabled" /></span>
+                            <span id=connectbutton1span><input type=button id=connectbutton1 cmenu="deskConnectButton" value="Connect" onclick=connectDesktop(event,3) onkeypress="return false" onkeydown="return false" disabled="disabled" /></span>
                             <span id=connectbutton1hspan>&nbsp;<input type=button id=connectbutton1h value="HW Connect" title="Connect using Intel AMT hardware KVM" onclick=connectDesktop(event,2) onkeypress="return false" onkeydown="return false" disabled="disabled" /></span>
                             <span id=disconnectbutton1span>&nbsp;<input type=button id=disconnectbutton1 value="Disconnect" onclick=connectDesktop(event,0) onkeypress="return false" onkeydown="return false" /></span>
                             &nbsp;<span id="deskstatus">Disconnected</span><span id="deskmetadata"></span>
@@ -598,8 +596,6 @@
                             <span id=DeskBackgroundButton title="Toggle remote desktop background"><img src='images/icon-background.png' onclick=deviceToggleBackground(event) height=16 width=16 style=padding-top:2px /></span>
                             <span id=DeskSaveImageButton title="Save a screenshot of the remote desktop"><img src='images/icon-camera.png' onclick=deskSaveImage() height=16 width=16 style=padding-top:2px /></span>
                             <span id=DeskRecordButton cmenu=deskPlayerContextMenu title="Record remote desktop session to file" style="display:none"><img id=DeskRecordButtonImage src='images/icon-film.png' onclick=deskRecordSession() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskClipboardInButton title="Download remote clipboard to local clipboard" style="display:none"><img id=DeskClipboardInButtonImage src='images/icon-clipboard-in.png' onclick=deskClipboardInFunction() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskClipboardOutButton title="Upload local clipboard to remote device"><img id=DeskClipboardOutButtonImage src='images/icon-clipboard-out.png' onclick=deskClipboardOutFunction() height=16 width=16 style=padding-top:2px /></span>
                         </div>
                         <div>
                             <select id="deskkeys">
@@ -734,7 +730,6 @@
                                 <input type=button id=p13CutButton disabled="disabled" value="Cut" onclick="p13copyFile(1)" />&nbsp;
                                 <input type=button id=p13CopyButton disabled="disabled" value="Copy" onclick="p13copyFile(0)" />&nbsp;
                                 <input type=button id=p13PasteButton disabled="disabled" value="Paste" onclick="p13pasteFile()" />&nbsp;
-                                <input type=button id=p13ZipButton disabled="disabled" value="Zip" onclick="p13zipFiles()" style="display:none" />&nbsp;
                                 <input type=button id=p13RefreshButton disabled="disabled" value="Refresh" onclick="p13folderup(9999)" />&nbsp;
                             </div>
                         </td>
@@ -1209,7 +1204,7 @@
         var autoReconnect = true;
         var powerStatetable = ['', "Powered", "Sleep", "Sleep", "Sleep", "Hibernating", "Power off", "Present"];
         var StatusStrs = ["Disconnected", "Connecting...", "Setup...", "Connected", "Intel&reg; AMT Connected"];
-        var agentsStr = ["Unknown", "Windows 32bit console", "Windows 64bit console", "Windows 32bit service", "Windows 64bit service", "Linux 32bit", "Linux 64bit", "MIPS", "XENx86", "Android ARM", "Linux ARM", "macOS 32bit", "Android x86", "PogoPlug ARM", "Android APK", "Linux Poky x86-32bit", "macOS 64bit", "ChromeOS", "Linux Poky x86-64bit", "Linux NoKVM x86-32bit", "Linux NoKVM x86-64bit", "Windows MinCore console", "Windows MinCore service", "NodeJS", "ARM-Linaro", "ARMv6l / ARMv7l", "ARMv8 64bit", "ARMv6l / ARMv7l / NoKVM", "MIPS24KC (OpenWRT)", "Unknown", "FreeBSD x86-64"];
+        var agentsStr = ["Unknown", "Windows 32bit console", "Windows 64bit console", "Windows 32bit service", "Windows 64bit service", "Linux 32bit", "Linux 64bit", "MIPS", "XENx86", "Android ARM", "Linux ARM", "macOS 32bit", "Android x86", "PogoPlug ARM", "Android APK", "Linux Poky x86-32bit", "macOS 64bit", "ChromeOS", "Linux Poky x86-64bit", "Linux NoKVM x86-32bit", "Linux NoKVM x86-64bit", "Windows MinCore console", "Windows MinCore service", "NodeJS", "ARM-Linaro", "ARMv6l / ARMv7l", "ARMv8 64bit", "ARMv6l / ARMv7l / NoKVM", "Unknown", "Unknown", "FreeBSD x86-64"];
         var sort = 0;
         var searchFocus = 0;
         var mapSearchFocus = 0;
@@ -1274,7 +1269,6 @@
         var xterm = null;
         var xtermfit = null;
         var xtermResizeTimer = null;
-        var miscState = {};
 
         // Console Message Display Timers
         var p11DeskConsoleMsgTimer = null;
@@ -1316,7 +1310,6 @@
             QV('p13AutoConnect', debugmode); // Files
             QV('autoconnectbutton2', debugmode); // Terminal
             QV('autoconnectbutton1', debugmode); // Desktop
-            QV('p13ZipButton', debugmode); // ZIP Feature
             //QV('DeskClip', debugmode); // Clipboard feature, not completed so show in in debug mode only.
 
             if (nightMode) { QC('body').add('night'); QS('body')['background-color'] = '#000'; }
@@ -1431,7 +1424,7 @@
             if (pluginHandler != null) pluginHandler.callHook('onWebUIStartupEnd');
 
             // Deleted non-english style and fix all topbar titles
-            if ((['en','ko','ja','zh-chs','zh-cht'].indexOf('{{{lang}}}') == -1) && ('{{{lang}}}'.toLowerCase() != '')) { QC('body').add('nonenglish'); }
+            if ((['en','ko','ja','zh-chs'].indexOf('{{{lang}}}') == -1) && ('{{{lang}}}'.toLowerCase() != '')) { QC('body').add('nonenglish'); }
             var elements = document.getElementsByClassName('topbar_td');
             for (var i in elements) { if (elements[i].innerHTML) { elements[i].innerHTML = elements[i].innerHTML.split(' ').join('&nbsp;'); } }
 
@@ -1461,9 +1454,6 @@
                     QH('filesCustomUiButtons', x);
                 }
             }
-
-            // Enable browser clipboard read if supported
-            QV('DeskClipboardInButton', navigator.clipboard.readText != null);
 
             // Session Refresh Timer
             if (sessionTime >= 10) { sessionRefreshTimer = setTimeout(refreshCookieSession, Math.round((sessionTime * 60000) * 0.8)); }
@@ -2125,12 +2115,8 @@
                                 showDeskToolsProcesses(message);
                             } else if (message.type == 'services') {
                                 showDeskToolsServices(message);
-                            } else if ((message.type == 'getclip') && (currentNode != null) && (currentNode._id == message.nodeid)) {
-                                if ((message.tag == 1) && (xxdialogTag == 'clipboard')) {
-                                    Q('d2clipText').value = message.data; // Put remote clipboard data into dialog box
-                                } else if (message.tag == 2) {
-                                    navigator.clipboard.writeText(message.data).then(function() { console.log('ok'); }).catch(function(err) { console.log(err); })  // Put remote clipboard data into our clipboard
-                                }
+                            } else if ((message.type == 'getclip') && (xxdialogTag == 'clipboard') && (currentNode != null) && (currentNode._id == message.nodeid)) {
+                                Q('d2clipText').value = message.data;
                             } else if ((message.type == 'setclip') && (xxdialogTag == 'clipboard') && (currentNode != null) && (currentNode._id == message.nodeid)) {
                                 // Display success/fail on the clipboard dialog box.
                                 QH('dlgClipStatus', message.success ? '<span style=color:green>' + "Success" + '</span>' : '<span style=color:red>' + "Failed" + '</span>')
@@ -2304,7 +2290,7 @@
                             newWindow.opener = null;
                         }
                     } else if (message.tag == 'novnc') {
-                        var vncurl = window.location.origin + domainUrl + 'novnc/vnc.html?ws=wss%3A%2F%2F' + window.location.host + encodeURIComponentEx(domainUrl) + 'meshrelay.ashx%3Fauth%3D' + message.cookie + '&show_dot=1' + (urlargs.key?('&key=' + urlargs.key):'') + '&l={{{lang}}}';
+                        var vncurl = window.location.origin + domainUrl + 'novnc/vnc.html?ws=wss%3A%2F%2F' + window.location.host + '%2Fmeshrelay.ashx%3Fauth%3D' + message.cookie + '&show_dot=1' + (urlargs.key?('&key=' + urlargs.key):'') + '&l={{{lang}}}';
                         var node = getNodeFromId(message.nodeid);
                         if (node != null) { vncurl += '&name=' + encodeURIComponentEx(node.name); }
                         var newWindow = window.open(vncurl, 'mcnovnc/' + message.nodeid);
@@ -2513,11 +2499,7 @@
                                     if ((webstate.loctag != null) && (webstate.loctag != oldLoctag)) { if (webstate.loctag != null) { args.locale = webstate.loctag; } else { delete args.locale; } mainUpdate(0xFFFFFFFF); }
                                     if ((webstate.nightMode != null) && (webstate.nightMode != oldNightMode)) { nightMode = (webstate.nightMode == '1'); if (nightMode) { QC('body').add('night'); QS('body')['background-color'] = '#000'; } else { QC('body').remove('night'); QS('body')['background-color'] = '#d3d9d6'; } }
                                     if ((webstate.footerBar != null) && (webstate.footerBar != oldFooterBar)) { footerBar = (webstate.footerBar == '1'); QS('container')['grid-template-rows'] = null; QS('container')['-ms-grid-rows'] = null; adjustPanels(); }
-                                    if ((webstate.stars != null) && (webstate.stars != JSON.stringify(stars))) {
-                                        stars = JSON.parse(webstate.stars);
-                                        if (Q('SearchInput').value == '*') { mainUpdate(5); } else { mainUpdate(4); }
-                                        if (currentNode) { refreshDevice(currentNode._id); }
-                                    }
+                                    if ((webstate.stars != null) && (webstate.stars != JSON.stringify(stars))) { stars = JSON.parse(webstate.stars); if (Q('SearchInput').value == '*') { mainUpdate(5); } else { mainUpdate(4); } }
                                 }
                             } catch (ex) {}
                             break;
@@ -2604,7 +2586,7 @@
                         case 'createmesh': {
                             // A new mesh was created
                             if ((meshes[message.event.meshid] == null) && ((serverinfo.manageAllDeviceGroups) || (message.event.links[userinfo._id] != null))) { // Check if this is a mesh create for a mesh we own. If site administrator, we get all messages so need to ignore some.
-                                meshes[message.event.meshid] = { _id: message.event.meshid, name: message.event.name, mtype: message.event.mtype, desc: message.event.desc, links: message.event.links, creation: message.event.creation, creatorid: message.event.creatorid, creatorname: message.event.creatorname };
+                                meshes[message.event.meshid] = { _id: message.event.meshid, name: message.event.name, mtype: message.event.mtype, desc: message.event.desc, links: message.event.links };
                                 mainUpdate(4 + 128 + 8192 + 16384);
                                 meshserver.send({ action: 'files' });
                             }
@@ -3048,22 +3030,6 @@
                     message.info.versionList.forEach(function(v) { vSelect += '<option value="' + v.zipball_url + '">' + v.name + '</option>'; });
                     vSelect += '</select>';
                     setDialogMode(2, "Plugin Action", 3, pluginActionEx, format('Select the version to downgrade the plugin: {0}', message.info.name) + '<hr />' + vSelect + '<hr />' + "Please be aware that downgrading is not recommended. Please only do so in the event that a recent upgrade has broken something." + + '<input id="lastPluginAct" type="hidden" value="downgrade" /><input id="lastPluginId" type="hidden" value="' + message.info.id + '" />');
-                    break;
-                }
-                case 'serverBackup': {
-                    if (message.service == 'googleDrive') {
-                        QV('p2ServerActionsGoogleBackup', message.state > 0);
-                        QV('p2ServerActionsGoogleBackupCheck', message.state > 2);
-                        miscState['googleDrive'] = { state: message.state }
-                        if (message.state == 2) {
-                            var x = '<img style=float:right src="images/googledrive-48.png" /><div>' + "Nagivate to the URL below, grant access and copy the token code back." + '</div><br />';
-                            x += addHtmlValue("Activation", '<a href=\"' + message.url + '\" rel="noreferrer noopener" target="_blank">Browse to this URL</a>');
-                            x += addHtmlValue("Code", '<input id=gdcode onkeyup=server_setupGoogleDriveBackupCheck3() style=width:240px></input>');
-                            setDialogMode(2, "Google Drive Backup", 3, server_setupGoogleDriveBackupEx, x, 'gd2');
-                            Q('gdcode').focus();
-                            QE('idx_dlgOkButton', false);
-                        }
-                    }
                     break;
                 }
                 case 'pluginError': {
@@ -3548,12 +3514,12 @@
                             r += '<tr><td colspan=4><div class=DevSt style=width:100%;padding-top:4px>';
                             var collapsed = CollapsedGroups['tag:' + encodeURIComponentEx(i)];
                             r += '<img class=collapseImage id="DevxColImg' + tagDeviceHeaderId + '" src=images/c' + ((collapsed === true)?'1':'2') + '.png height=8 width=8 style=margin-left:2px;margin-right:2px;cursor:pointer onclick=toggleCollapseGroup("' + tagDeviceHeaderId + '","tag:' + encodeURIComponentEx(i) + '",2)></img>'; // Collapse action
-                            r += '<span class=devHeaderx style=float:right>' + groupCount[i] + ' node' + ((groupCount[i] > 1) ? 's' : '') + '</span><span>' + EscapeHtml(i).split('|').join(' &rarr; ') + '</span></div>' + groups[i];
+                            r += '<span class=devHeaderx style=float:right>' + groupCount[i] + ' node' + ((groupCount[i] > 1) ? 's' : '') + '</span><span>' + i + '</span></div>' + groups[i];
                         } else {
-                            r += '<div class=DevSt style=width:100%;padding-top:4px><span class=devHeaderx style=float:right>' + format(((groupCount[i] > 1) ? '{0} nodes' : '{0} node'), groupCount[i]) + '</span>';
+                            r += '<div class=DevSt style=width:100%;padding-top:4px><span class=devHeaderx style=float:right>' + groupCount[i] + ' node' + ((groupCount[i] > 1) ? 's' : '') + '</span>';
                             var collapsed = CollapsedGroups['tag:' + encodeURIComponentEx(i)];
                             r += '<img class=collapseImage id="DevxColImg' + tagDeviceHeaderId + '" src=images/c' + ((collapsed === true)?'1':'2') + '.png height=8 width=8 style=margin-left:2px;margin-right:2px;cursor:pointer onclick=toggleCollapseGroup("' + tagDeviceHeaderId + '","tag:' + encodeURIComponentEx(i) + '")></img>'; // Collapse action
-                            r += '<span>' + EscapeHtml(i).split('|').join(' &rarr; ') + '</span></div>';
+                            r += '<span>' + i + '</span></div>';
                             r += '<div id=DevxCol' + tagDeviceHeaderId + ((collapsed === true)?' style=display:none':'') + '>'; // Open collapse div
                             r += groups[i];
                             r += '</div>';
@@ -3625,7 +3591,7 @@
 
                 // Add a "Add Device Group" option
                 r += '<div style=border-top-style:solid;border-top-width:1px;border-top-color:#DDDDDD;cursor:pointer;font-size:10px>';
-                if ((view < 3) && (sort == 0) && (Object.keys(meshes).length > 0) && ((userinfo.siteadmin == 0xFFFFFFFF) || ((userinfo.siteadmin & 64) == 0))) {
+                if ((view < 3) && (sort == 0) && (nodes.length > 0) && ((userinfo.siteadmin == 0xFFFFFFFF) || ((userinfo.siteadmin & 64) == 0))) {
                     r += '<a href=# onclick="return account_createMesh()" title="' + "Create a new group of devices." + '" style=cursor:pointer>' + "Add Device Group" + '</a>&nbsp';
                 }
                 if ((userinfo.siteadmin == 0xFFFFFFFF) || ((userinfo.siteadmin & 128) == 0)) {
@@ -4380,7 +4346,7 @@
             }
 
             var x = "Select an operation to perform on all selected devices. Actions will be performed only with proper rights." + '<br /><br />';
-            x += addHtmlValue("Operation", '<select id=d2groupop><option value=100>' + "Wake-up devices" + '</option><option value=106>' + "Run commands" + '</option><option value=4>' + "Sleep devices" + '</option><option value=3>' + "Reset devices" + '</option><option value=2>' + "Power off devices" + '</option><option value=105>' + "Export device information" + '</option><option value=102>' + "Move to device group" + '</option>' + '</option><option value=107>' + "Edit tags" + '</option><option value=108>' + "Device notification" + '</option>' + addedOptions + '<option value=101>' + "Delete devices" + '</option></select>');
+            x += addHtmlValue("Operation", '<select id=d2groupop><option value=100>' + "Wake-up devices" + '</option><option value=106>' + "Run commands" + '</option><option value=4>' + "Sleep devices" + '</option><option value=3>' + "Reset devices" + '</option><option value=2>' + "Power off devices" + '</option><option value=105>' + "Export device information" + '</option><option value=102>' + "Move to device group" + '</option>' + '</option><option value=107>' + "Edit tags" + '</option>' + addedOptions + '<option value=101>' + "Delete devices" + '</option></select>');
             setDialogMode(2, "Group Action", 3, groupActionFunctionEx, x);
         }
 
@@ -4446,29 +4412,10 @@
                 x += addHtmlValue("Operation", '<select id=d2deviceop style=float:right;width:250px><option value=1>' + "Add tags" + '</option><option value=2>' + "Set tags" + '</option><option value=3>' + "Remove tags" + '</option></select>');
                 x += addHtmlValue("Tags", '<input id=dp10devicevalue maxlength=4096 placeholder="' + "Tag1, Tag2, Tag3" + '" />');
                 setDialogMode(2, "Edit Device Tags", 3, d2groupActionFunctionTagsExec, x);
-            } else if (op == 108) {
-                // Device notification
-                var x = "Perform batch device notification" + '<br /><br />';
-                x += '<select id=d2deviceop style=width:100%><option value=2>' + "Toast Notification" + '</option><option value=1>' + "Message Box" + '</option></select>';
-                x += '<br /><input id=dp2notifyTitle maxlength=256 placeholder="' + "Title" + '" style=width:100% />';
-                x += '<textarea id=d2notifyMsg style=background-color:#fcf3cf;width:100%;height:140px;resize:none;overflow-y:scroll></textarea>';
-                setDialogMode(2, "Device Notification", 3, d2groupActionFunctionNotifyExec, x);
-                Q('d2notifyMsg').focus();
             } else {
                 // Power operation
                 meshserver.send({ action: 'poweraction', nodeids: getCheckedDevices(), actiontype: parseInt(op) });
                 uncheckAllDevices();
-            }
-        }
-
-        function d2groupActionFunctionNotifyExec() {
-            var op = Q('d2deviceop').value, title = Q('dp2notifyTitle').value, msg = Q('d2notifyMsg').value, chkNodeIds = getCheckedDevices();
-            if (msg.length == 0) return;
-            if (title == '') { title = '{{{title}}}'; }
-            if (op == 1) { // MessageBox
-                for (var i = 0; i < chkNodeIds.length; i++) { meshserver.send({ action: 'msg', type: 'messagebox', nodeid: chkNodeIds[i], title: title, msg: msg }); }
-            } else if (op == 2) { // Toast
-                meshserver.send({ action: 'toast', nodeids: chkNodeIds, title: title, msg: msg });
             }
         }
 
@@ -5666,7 +5613,7 @@
                 x += '<input type=button value="' + "Log Event" + '" title="' + "Write an event for this device" + '" onclick=writeDeviceEvent("' + encodeURIComponentEx(node._id) + '") />';
                 if ((connectivity & 1) && (meshrights & 8)) { x += '<input type=button value="' + "Message" + '" title="' + "Display a text message on the remote device" + '" onclick=deviceMessageFunction() />';  }
                 //if ((connectivity & 1) && (meshrights & 8) && (node.agent.id < 5)) { x += '<input type=button value=Toast title="' + "Display a text message of the remote device" + '" onclick=deviceToastFunction() />';  }
-                if ((node.agent!=null) && (node.agent.caps & 1) && (connectivity & 1) && (meshrights & 8) && ((meshrights == 0xFFFFFFFF) || ((meshrights & 4352) == 0))) { x += '<input type=button value="' + "Share" + '" title="' + "Create a link to share this device with a guest" + '" onclick=showShareDevice() />'; }
+                if ((node.agent.caps & 1) && (connectivity & 1) && (meshrights & 8) && ((meshrights == 0xFFFFFFFF) || ((meshrights & 4352) == 0))) { x += '<input type=button value="' + "Share" + '" title="' + "Create a link to share this device with a guest" + '" onclick=showShareDevice() />'; }
 
                 // Custom UI
                 if ((customui != null) && (customui.devicebuttons != null)) {
@@ -5978,21 +5925,12 @@
 
         function deviceMessageFunction() {
             if (xxdialogMode) return;
-            setDialogMode(2, "Device Message", 3, deviceMessageFunctionEx, '<div style=margin-bottom:4px>' + "Display a message box on the remote device." + '</div><textarea id=d2devMessage style=background-color:#fcf3cf;width:100%;height:80px;resize:none;overflow-y:scroll></textarea>');
+            setDialogMode(2, "Device Message", 3, deviceMessageFunctionEx, '<div style=margin-bottom:4px>' + "Display a message box on the remote device." + '</div><textarea id=d2devMessage style=width:100%;height:80px;resize:none;overflow-y:scroll></textarea>');
             Q('d2devMessage').focus();
         }
 
         function deviceMessageFunctionEx() {
             meshserver.send({ action: 'msg', type: 'messagebox', nodeid: currentNode._id, title: '{{{title}}}', msg: Q('d2devMessage').value });
-        }
-
-        function deskClipboardInFunction() {
-            if (desktop == null || desktop.State != 3) return;
-            meshserver.send({ action: 'msg', type: 'getclip', nodeid: currentNode._id, tag: 2 });
-        }
-
-        function deskClipboardOutFunction() {
-            if (navigator.clipboard.readText) { navigator.clipboard.readText().then(function(text) { meshserver.send({ action: 'msg', type: 'setclip', nodeid: currentNode._id, data: text }); }).catch(function(err) { }); }
         }
 
         function deviceToastFunction() {
@@ -6514,29 +6452,19 @@
             // Show the right buttons
             QV('disconnectbutton1span', (deskState != 0));
             QV('connectbutton1span', (deskState == 0) && ((rights & 8) || (rights & 256)) && (currentNode.agent != null) && (currentNode.agent.caps & 1));
-            if (mesh.mtype == 1) {
-                QV('connectbutton1hspan',
-                    (deskState == 0) &&
-                    (rights & 8) &&
-                    (
-                        ((currentNode.intelamt != null) &&
-                        (currentNode.intelamt.state == 2))
-                    )
-                );
-            } else {
-                QV('connectbutton1hspan',
-                    (deskState == 0) &&
-                    (rights & 8) &&
-                    (
-                        ((currentNode.intelamt != null) &&
-                        (currentNode.intelamt.state == 2) &&
-                        (currentNode.intelamt.ver != null) &&
-                        ((currentNode.intelamt.sku == null) ||
-                        ((typeof currentNode.intelamt.sku == 'number') &&
-                        ((currentNode.intelamt.sku & 8) != 0))))
-                    )
-                );            
-            }
+            QV('connectbutton1hspan',
+                (deskState == 0) &&
+                (rights & 8) &&
+                (
+                  ((currentNode.intelamt != null) &&
+                  (currentNode.intelamt.state == 2) &&
+                  (currentNode.intelamt.ver != null) &&
+                  ((currentNode.intelamt.sku == null) ||
+                  ((typeof currentNode.intelamt.sku == 'number') &&
+                  ((currentNode.intelamt.sku & 8) != 0))))
+                )
+            );
+
             // Show the right settings
             QV('d7amtkvm', (currentNode.intelamt != null && ((currentNode.intelamt.ver != null) || (currentNode.agent == null))) && ((deskState == 0) || (desktop.contype == 2)));
             QV('d7meshkvm', (webRtcDesktop) || ((currentNode.agent != null) && (currentNode.agent.caps & 1) && ((deskState == false) || (desktop.contype == 1))));
@@ -7177,7 +7105,7 @@
 
         function showDeskClipGet() {
             if (desktop == null || desktop.State != 3) return;
-            meshserver.send({ action: 'msg', type: 'getclip', nodeid: currentNode._id, tag: 1 });
+            meshserver.send({ action: 'msg', type: 'getclip', nodeid: currentNode._id });
         }
 
         function showDeskClipSet() {
@@ -7402,13 +7330,8 @@
             // Show the right buttons
             QV('disconnectbutton2span', (termState == true));
             QV('connectbutton2span', (termState == false) && (currentNode.agent != null) && (currentNode.agent.caps & 2));
-            if (mesh.mtype == 1) {
-                QV('connectbutton2hspan', (termState == false) && (terminalNode.intelamt != null) && (terminalNode.intelamt.state == 2));
-                QV('terminalSizeDropDown', (termState == false) && (terminalNode.intelamt != null) && (terminalNode.intelamt.state == 2));
-            } else {
-                QV('connectbutton2hspan', (termState == false) && (terminalNode.intelamt != null) && (terminalNode.intelamt.state == 2) && (terminalNode.intelamt.ver != null));
-                QV('terminalSizeDropDown', (termState == false) && (terminalNode.intelamt != null) && (terminalNode.intelamt.state == 2) && (terminalNode.intelamt.ver != null));
-            }
+            QV('connectbutton2hspan', (termState == false) && (terminalNode.intelamt != null) && (terminalNode.intelamt.state == 2) && (terminalNode.intelamt.ver != null));
+            QV('terminalSizeDropDown', (termState == false) && (terminalNode.intelamt != null) && (terminalNode.intelamt.state == 2) && (terminalNode.intelamt.ver != null));
 
             // Enable buttons
             var online = ((terminalNode.conn & 1) != 0); // If Agent (1) connected, enable Terminal
@@ -7723,7 +7646,6 @@
                     QV('filesRecordIcon', false);
                     p13setActions();
                     if (files != null) { files.Stop(); files = null; }
-                    if (xxdialogTag == 'fileMsgDialog') { setDialogMode(0); }
                     break;
                 case 3:
                     p13targetpath = '';
@@ -7782,51 +7704,26 @@
         var p13targetpath = null;
         var p13filetreelocation = [];
 
-        function p13fileOperationDialogEx(b) { if ((b == 0) && (files != null)) { files.sendText({ action: 'cancel' }); } }
-
         function p13gotFiles(data) {
             if ((data.length > 0) && (data.charCodeAt(0) != 123)) { p13gotDownloadBinaryData(data); return; } // This is ok because 4 first bytes is a control value.
             //console.log('p13gotFiles', data);
             data = JSON.parse(decode_utf8(data));
             if (data.action == 'download') { p13gotDownloadCommand(data); return; }
-
-            // Process file upload commands
-            if ((data.action != null) && (data.action.startsWith('upload'))) { p13gotUploadData(data); return; }
-
-            // Display a dialog message
-            if (data.action == 'dialogmessage') {
-                if ((data.msg == null) && (xxdialogTag == 'fileMsgDialog')) {
-                    setDialogMode(0); // Close the dialog box
-                } else if ((data.msg == 'zipping') && ((!xxdialogMode) || (xxdialogTag == 'fileMsgDialog'))) {
-                    // Show the dialog box message
-                    setDialogMode(2, "File Operation", 10, p13fileOperationDialogEx, '<div style=margin:10px>' + "Compressing files..." + '<div>', 'fileMsgDialog');
-                } else if ((data.msg == 'zippingFile') && ((!xxdialogMode) || (xxdialogTag == 'fileMsgDialog'))) {
-                    // Show the dialog box message
-                    setDialogMode(2, "File Operation", 10, p13fileOperationDialogEx, '<div style=margin:10px>' + EscapeHtml(data.file) + '<div><br /><progress value=' + EscapeHtml(data.progress) + ' style=width:100% max=100 />', 'fileMsgDialog');
-                }
-                return;
-            }
-
-            // Refresh file folder
-            if (data.action == 'refresh') { p13folderup(9999); return; }
-
-            if (data.path != null) {
-                data.path = data.path.replace(/\//g, '\\');
-                if ((p13filetree != null) && (data.path == p13filetree.path)) {
-                    // This is an update to the same folder
-                    var checkedNames = p13getCheckedNames();
+            data.path = data.path.replace(/\//g, '\\');
+            if ((p13filetree != null) && (data.path == p13filetree.path)) {
+                // This is an update to the same folder
+                var checkedNames = p13getCheckedNames();
+                p13filetree = data;
+                p13updateFiles(checkedNames);
+            } else {
+                // Make both paths use the same seperator not start with /
+                var x1 = data.path.replace(/\//g, '\\'), x2 = p13targetpath.replace(/\//g, '\\');
+                while ((x1.length > 0) && (x1[0] == '\\')) { x1 = x1.substring(1); }
+                while ((x2.length > 0) && (x2[0] == '\\')) { x2 = x2.substring(1); }
+                if ((x1 == x2) || ((data.path == '\\') && (p13targetpath == ''))) {
+                    // This is a different folder
                     p13filetree = data;
-                    p13updateFiles(checkedNames);
-                } else {
-                    // Make both paths use the same seperator not start with /
-                    var x1 = data.path.replace(/\//g, '\\'), x2 = p13targetpath.replace(/\//g, '\\');
-                    while ((x1.length > 0) && (x1[0] == '\\')) { x1 = x1.substring(1); }
-                    while ((x2.length > 0) && (x2[0] == '\\')) { x2 = x2.substring(1); }
-                    if ((x1 == x2) || ((data.path == '\\') && (p13targetpath == ''))) {
-                        // This is a different folder
-                        p13filetree = data;
-                        p13updateFiles();
-                    }
+                    p13updateFiles();
                 }
             }
         }
@@ -7932,7 +7829,6 @@
                 QE('p13RefreshButton', false);
                 QE('p13CutButton', false);
                 QE('p13CopyButton', false);
-                QE('p13ZipButton', false);
                 QE('p13PasteButton', false);
             } else {
                 var cc = p13getFileSelCount(), tc = p13getFileCount(), sfc = p13getFileSelCount(false); // In order: number of entires selected, number of total entries, number of selected entires that are files (not folders)
@@ -7947,7 +7843,6 @@
                 QE('p13RefreshButton', true);
                 QE('p13CutButton', (cc > 0) && (cc == sfc) && ((p13filetreelocation.length > 0) || (winAgent == false)));
                 QE('p13CopyButton', (cc > 0) && (cc == sfc) && ((p13filetreelocation.length > 0) || (winAgent == false)));
-                QE('p13ZipButton', (cc > 0) && ((p13filetreelocation.length > 0) || (winAgent == false)));
                 QE('p13PasteButton', ((p13filetreelocation.length > 0) || (winAgent == false)) && ((p13clipboard != null) && (p13clipboard.length > 0)));
             }
         }
@@ -7976,20 +7871,6 @@
                     break;
                 }
             }
-        }
-
-        function p13zipFiles() {
-            var inputFiles = [], checkboxes = document.getElementsByName('fd');
-            for (var i = 0; i < checkboxes.length; i++) { if (checkboxes[i].checked) { inputFiles.push(p13filetree.dir[checkboxes[i].value].n); } }
-            setDialogMode(2, "Zip Filename", 3, p13zipFilesEx, '<input type=text id=p13renameinput maxlength=64 onkeyup=p13fileNameCheck(event) style=width:100% value="" />', { action: 'zip', path: p13filetreelocation.join('/'), files: inputFiles});
-            focusTextBox('p13renameinput');
-            p13fileNameCheck();
-        }
-
-        function p13zipFilesEx(b, tag) {
-            tag.output = Q('p13renameinput').value;
-            if (!tag.output.toLowerCase().endsWith('.zip')) { tag.output += '.zip'; }
-            files.sendText(tag);
         }
 
         var p13clipboard = null, p13clipboardFolder = null, p13clipboardCut = 0;
@@ -8135,6 +8016,68 @@
             p13uploadFileContinue(1, [{ name: tag, size: data.byteLength, type: 'text/plain', xdata: data }]);
         }
 
+        /*
+        var downloadFile; // Global state for file download
+
+        // Called by the html page to start a download, arguments are: path, file name and file size.
+        function p13downloadfile(x, y, z) {
+            if (xxdialogMode) return;
+            downloadFile = CreateAgentRedirect(meshserver, CreateRemoteFiles(p13gotDownloadData), serverPublicNamePort, authCookie, authRelayCookie, domainUrl); // Create our websocket file transport
+            downloadFile.ctrlMsgAllowed = false;
+            downloadFile.onStateChanged = onFileDownloadStateChange;
+            downloadFile.xpath = decodeURIComponent(x);
+            downloadFile.xfile = decodeURIComponent(y);
+            downloadFile.xsize = z;
+            downloadFile.xtsize = 0;
+            downloadFile.xstate = 0;
+            downloadFile.Start(filesNode._id);
+            setDialogMode(2, "Download File", 10, p13downloadFileCancel, '<div>' + downloadFile.xfile + '</div><br /><progress id=d2progressBar style=width:100% value=0 max=' + z + ' />');
+        }
+
+        // Called by the html page to cancel the download
+        function p13downloadFileCancel(button, tag) {
+            //console.log('p13downloadFileCancel');
+            downloadFile.Stop();
+            delete downloadFile;
+            downloadFile = null;
+        }
+
+        // Called by the file transport to indicate when the transport connection state has changed
+        function onFileDownloadStateChange(xdownloadFile, state) {
+            switch (state) {
+                case 0: // Transport as disconnected. If this is not part of an abort, we need to save the file
+                    setDialogMode(0); // Close any dialog boxes if present
+                    if ((downloadFile != null) && (downloadFile.xstate == 1)) { saveAs(data2blob(downloadFile.xdata), downloadFile.xfile); } // Save the file
+                    break;
+                case 3: // Transport as connected, send a command to indicate we want to start a file download
+                    downloadFile.send(JSON.stringify({ action: 'download', reqid: 1, path: downloadFile.xpath }));
+                    break;
+                default:
+                    console.log('Unknown onFileDownloadStateChange state', state);
+                    break;
+            }
+        }
+
+        // Called by the transport when data is received
+        function p13gotDownloadData(data) {
+            if (downloadFile.xstate == 0) { // If state is 0, this is a command confirming if the file will be transfered.
+                var cmd = JSON.parse(data);
+                if (cmd.action == 'downloadstart') { // Yes, the file is about to start
+                    downloadFile.xstate = 1; // Switch to state 1, we will start receiving the file data
+                    downloadFile.xdata = ''; // Start with empty data
+                    downloadFile.send('a'); // Send the first ACK
+                } else if (cmd.action == 'downloaderror') { // Problem opening this file, cancel
+                    p13downloadFileCancel();
+                }
+            } else { // We are in the process of receiving the file
+                downloadFile.xtsize += (data.length); // Add to the total bytes received
+                downloadFile.xdata += data; // Append the data
+                Q('d2progressBar').value = downloadFile.xtsize; // Change the progress bar
+                downloadFile.send('a'); // Send the ACK
+            }
+        }
+        */
+
         //
         // FILES UPLOAD
         //
@@ -8170,7 +8113,28 @@
             uploadFile.xfiles = files;
             uploadFile.xfilePtr = -1;
             setDialogMode(2, "Upload File", 10, p13uploadFileCancel, '<div id=p13dfileName>' + "Connecting..." + '</div><br /><progress id=d2progressBar style=width:100% value=0 max=0 />');
-            p13uploadNextFile();
+            p13uploadReconnect();
+        }
+
+        function onFileUploadStateChange(xdownloadFile, state) {
+            switch (state) {
+                case 0:
+                    setTimeout(function () { p13folderup(9999); }, 200); // Delay the file refresh
+                    break;
+                case 3:
+                    p13uploadNextFile();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Connect again
+        function p13uploadReconnect() {
+            uploadFile.ws = CreateAgentRedirect(meshserver, CreateRemoteFiles(p13gotUploadData), serverPublicNamePort, authCookie, authRelayCookie, domainUrl);
+            uploadFile.ws.attemptWebRTC = false;
+            uploadFile.ws.onStateChanged = onFileUploadStateChange;
+            uploadFile.ws.Start(filesNode._id);
         }
 
         // Push the next file
@@ -8182,64 +8146,66 @@
                 QH('p13dfileName', file.name);
                 Q('d2progressBar').max = file.size;
                 Q('d2progressBar').value = 0;
+
                 if (file.xdata == null) {
                     // Load the data
                     uploadFile.xreader = new FileReader();
                     uploadFile.xreader.onload = function () {
                         uploadFile.xdata = uploadFile.xreader.result;
-                        files.sendText(JSON.stringify({ action: 'upload', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: file.name, size: uploadFile.xdata.byteLength }));
+                        uploadFile.ws.sendText(JSON.stringify({ action: 'upload', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: file.name, size: uploadFile.xdata.byteLength }));
                     };
                     uploadFile.xreader.readAsArrayBuffer(file);
                 } else {
                     // Data already loaded
                     uploadFile.xdata = file.xdata;
-                    files.sendText(JSON.stringify({ action: 'upload', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: file.name, size: uploadFile.xdata.byteLength }));
+                    uploadFile.ws.sendText(JSON.stringify({ action: 'upload', reqid: uploadFile.xfilePtr, path: uploadFile.xpath, name: file.name, size: uploadFile.xdata.byteLength }));
                 }
             } else {
-                p13uploadFileTransferDone();
+                p13uploadFileCancel();
             }
         }
 
         // Used to cancel the entire transfer.
         function p13uploadFileCancel(button, tag) {
-            if (uploadFile != null) { files.sendText(JSON.stringify({ action: 'uploadcancel', reqid: uploadFile.xfilePtr })); uploadFile = null; }
-            p13uploadFileTransferDone();
-        }
-
-        // Used to cancel the entire transfer.
-        function p13uploadFileTransferDone() {
-            uploadFile = null; // No more files to upload, clean up.
-            setDialogMode(0); // Close the dialog box
-            p13folderup(9999); // Refresh the current folder
+            if (uploadFile != null) {
+                if (uploadFile.ws != null) {
+                    uploadFile.ws.Stop();
+                    uploadFile.ws = null;
+                }
+                uploadFile = null;
+            }
+            setDialogMode(0); // Close any dialog boxes if present
         }
 
         // Receive upload ack from the mesh agent, use this to keep sending more data
-        function p13gotUploadData(cmd) {
+        function p13gotUploadData(data) {
+            var cmd = JSON.parse(data);
             if ((uploadFile == null) || (parseInt(uploadFile.xfilePtr) != parseInt(cmd.reqid))) { return; }
-            switch (cmd.action) {
-                case 'uploadstart': { p13uploadNextPart(false); for (var i = 0; i < 8; i++) { p13uploadNextPart(true); } break; } // Send 8 more blocks of 16k to fill the websocket.
-                case 'uploadack': { p13uploadNextPart(false); break; }
-                case 'uploaddone': { if (uploadFile.xfiles.length > uploadFile.xfilePtr + 1) { p13uploadNextFile(); } else { p13uploadFileTransferDone(); } break; }
-                case 'uploaderror': { p13uploadFileCancel(); break; }
+
+            if (cmd.action == 'uploadstart') {
+                p13uploadNextPart(false);
+                for (var i = 0; i < 8; i++) { p13uploadNextPart(true); } // Send 8 more blocks of 4 k to full the websocket.
+            } else if (cmd.action == 'uploadack') {
+                p13uploadNextPart(false);
+            } else if (cmd.action == 'uploaddone') {
+                if (uploadFile.ws != null) { uploadFile.ws.Stop(); uploadFile.ws = null; }
+                if (uploadFile.xfiles.length > uploadFile.xfilePtr + 1) { p13uploadReconnect(); } else { p13uploadFileCancel(); }
+            } else if (cmd.action == 'uploaderror') {
+                p13uploadFileCancel();
             }
         }
 
         // Push the next part of the file into the websocket. If dataPriming is true, push more data only if it's not the last block of the file.
         function p13uploadNextPart(dataPriming) {
-            var data = uploadFile.xdata, start = uploadFile.xptr;
+            var data = uploadFile.xdata;
+            var start = uploadFile.xptr;
             if (start >= data.byteLength) {
-                files.sendText(JSON.stringify({ action: 'uploaddone', reqid: uploadFile.xfilePtr }));
+                uploadFile.ws.sendCtrlMsg('{"ctrlChannel":"102938","type":"close"}');
             } else {
                 var end = uploadFile.xptr + 16384;
                 if (end > data.byteLength) { if (dataPriming == true) { return; } end = data.byteLength; }
-                var dataslice = new Uint8Array(data.slice(start, end))
-                if ((dataslice[0] == 123) || (dataslice[0] == 0)) {
-                    var datapart = new Uint8Array(end - start + 1);
-                    datapart.set(dataslice, 1); // Add a zero char at the start of the send, this will indicate that it's not a JSON command.
-                    files.send(datapart);
-                } else {
-                    files.send(dataslice); // The data does not start with 0 or 123 "{" so it can't be confused for JSON.
-                }
+                var datapart = data.slice(start, end);
+                uploadFile.ws.send(datapart);
                 uploadFile.xptr = end;
                 Q('d2progressBar').value = end;
             }
@@ -8877,7 +8843,7 @@
         }
 
         var loclist = { 'af': "Afrikaans", 'sq': "Albanian", 'ar': "Arabic (Standard)", 'ar-dz': "Arabic (Algeria)", 'ar-bh': "Arabic (Bahrain)", 'ar-eg': "Arabic (Egypt)", 'ar-iq': "Arabic (Iraq)", 'ar-jo': "Arabic (Jordan)", 'ar-kw': "Arabic (Kuwait)", 'ar-lb': "Arabic (Lebanon)", 'ar-ly': "Arabic (Libya)", 'ar-ma': "Arabic (Morocco)", 'ar-om': "Arabic (Oman)", 'ar-qa': "Arabic (Qatar)", 'ar-sa': "Arabic (Saudi Arabia)", 'ar-sy': "Arabic (Syria)", 'ar-tn': "Arabic (Tunisia)", 'ar-ae': "Arabic (U.A.E.)", 'ar-ye': "Arabic (Yemen)", 'an': "Aragonese", 'hy': "Armenian", 'as': "Assamese", 'ast': "Asturian", 'az': "Azerbaijani", 'eu': "Basque", 'bg': "Bulgarian", 'be': "Belarusian", 'bn': "Bengali", 'bs': "Bosnian", 'br': "Breton", 'my': "Burmese", 'ca': "Catalan", 'ch': "Chamorro", 'ce': "Chechen", 'zh': "Chinese", 'zh-hk': "Chinese (Hong Kong)", 'zh-cn': "Chinese (PRC)", 'zh-sg': "Chinese (Singapore)", 'zh-tw': "Chinese (Taiwan)", 'cv': "Chuvash", 'co': "Corsican", 'cr': "Cree", 'hr': "Croatian", 'cs': "Czech", 'da': "Danish", 'nl': "Dutch (Standard)", 'nl-be': "Dutch (Belgian)", 'en': "English", 'en-au': "English (Australia)", 'en-bz': "English (Belize)", 'en-ca': "English (Canada)", 'en-ie': "English (Ireland)", 'en-jm': "English (Jamaica)", 'en-nz': "English (New Zealand)", 'en-ph': "English (Philippines)", 'en-za': "English (South Africa)", 'en-tt': "English (Trinidad & Tobago)", 'en-gb': "English (United Kingdom)", 'en-us': "English (United States)", 'en-zw': "English (Zimbabwe)", 'eo': "Esperanto", 'et': "Estonian", 'fo': "Faeroese", 'fa': "Farsi (Persian)", 'fj': "Fijian", 'fi': "Finnish", 'fr': "French (Standard)", 'fr-be': "French (Belgium)", 'fr-ca': "French (Canada)", 'fr-fr': "French (France)", 'fr-lu': "French (Luxembourg)", 'fr-mc': "French (Monaco)", 'fr-ch': "French (Switzerland)", 'fy': "Frisian", 'fur': "Friulian", 'gd': "Gaelic (Scots)", 'gd-ie': "Gaelic (Irish)", 'gl': "Galacian", 'ka': "Georgian", 'de': "German (Standard)", 'de-at': "German (Austria)", 'de-de': "German (Germany)", 'de-li': "German (Liechtenstein)", 'de-lu': "German (Luxembourg)", 'de-ch': "German (Switzerland)", 'el': "Greek", 'gu': "Gujurati", 'ht': "Haitian", 'he': "Hebrew", 'hi': "Hindi", 'hu': "Hungarian", 'is': "Icelandic", 'id': "Indonesian", 'iu': "Inuktitut", 'ga': "Irish", 'it': "Italian (Standard)", 'it-ch': "Italian (Switzerland)", 'ja': "Japanese", 'kn': "Kannada", 'ks': "Kashmiri", 'kk': "Kazakh", 'km': "Khmer", 'ky': "Kirghiz", 'tlh': "Klingon", 'ko': "Korean", 'ko-kp': "Korean (North Korea)", 'ko-kr': "Korean (South Korea)", 'la': "Latin", 'lv': "Latvian", 'lt': "Lithuanian", 'lb': "Luxembourgish", 'mk': "FYRO Macedonian", 'ms': "Malay", 'ml': "Malayalam", 'mt': "Maltese", 'mi': "Maori", 'mr': "Marathi", 'mo': "Moldavian", 'nv': "Navajo", 'ng': "Ndonga", 'ne': "Nepali", 'no': "Norwegian", 'nb': "Norwegian (Bokmal)", 'nn': "Norwegian (Nynorsk)", 'oc': "Occitan", 'or': "Oriya", 'om': "Oromo", 'fa-ir': "Persian/Iran", 'pl': "Polish", 'pt': "Portuguese", 'pt-br': "Portuguese (Brazil)", 'pa': "Punjabi", 'pa-in': "Punjabi (India)", 'pa-pk': "Punjabi (Pakistan)", 'qu': "Quechua", 'rm': "Rhaeto-Romanic", 'ro': "Romanian", 'ro-mo': "Romanian (Moldavia)", 'ru': "Russian", 'ru-mo': "Russian (Moldavia)", 'sz': "Sami (Lappish)", 'sg': "Sango", 'sa': "Sanskrit", 'sc': "Sardinian", 'sd': "Sindhi", 'si': "Singhalese", 'sr': "Serbian", 'sk': "Slovak", 'sl': "Slovenian", 'so': "Somani", 'sb': "Sorbian", 'es': "Spanish", 'es-ar': "Spanish (Argentina)", 'es-bo': "Spanish (Bolivia)", 'es-cl': "Spanish (Chile)", 'es-co': "Spanish (Colombia)", 'es-cr': "Spanish (Costa Rica)", 'es-do': "Spanish (Dominican Republic)", 'es-ec': "Spanish (Ecuador)", 'es-sv': "Spanish (El Salvador)", 'es-gt': "Spanish (Guatemala)", 'es-hn': "Spanish (Honduras)", 'es-mx': "Spanish (Mexico)", 'es-ni': "Spanish (Nicaragua)", 'es-pa': "Spanish (Panama)", 'es-py': "Spanish (Paraguay)", 'es-pe': "Spanish (Peru)", 'es-pr': "Spanish (Puerto Rico)", 'es-es': "Spanish (Spain)", 'es-uy': "Spanish (Uruguay)", 'es-ve': "Spanish (Venezuela)", 'sx': "Sutu", 'sw': "Swahili", 'sv': "Swedish", 'sv-fi': "Swedish (Finland)", 'sv-sv': "Swedish (Sweden)", 'ta': "Tamil", 'tt': "Tatar", 'te': "Teluga", 'th': "Thai", 'tig': "Tigre", 'ts': "Tsonga", 'tn': "Tswana", 'tr': "Turkish", 'tk': "Turkmen", 'uk': "Ukrainian", 'hsb': "Upper Sorbian", 'ur': "Urdu", 've': "Venda", 'vi': "Vietnamese", 'vo': "Volapuk", 'wa': "Walloon", 'cy': "Welsh", 'xh': "Xhosa", 'ji': "Yiddish", 'zu': "Zulu" };
-        var loclistex = { 'zh-chs': "Chinese (Simplified)", 'zh-cht': "Chinese (Traditional)" };
+        var loclistex = { 'zh-chs': "Chinese (Simplified)" };
         function account_showLocalizationSettings() {
             if (xxdialogMode) return false;
             var n = getstore('loctag', 0), y = '';
@@ -9121,26 +9087,21 @@
         }
 
         function updateMeshes() {
-            var r = '', c = 0, count = 0;
-
-            // Sort the device groups
-            var sortedMeshes = [];
-            for (i in meshes) { sortedMeshes.push(meshes[i]); }
-            sortedMeshes.sort(nameSort);
-
-            for (i in sortedMeshes) {
+            var r = '';
+            var c = 0, count = 0;
+            for (i in meshes) {
                 // Mesh positioning
                 if (c > 1) { r += '</tr><tr>'; c = 0; }
                 c++;
                 count++;
 
                 // Mesh rights
-                var meshrights = GetMeshRights(sortedMeshes[i]);
+                var meshrights = GetMeshRights(meshes[i]);
                 var rights = "Partial Rights";
                 if (meshrights == 0xFFFFFFFF) rights = "Full Administrator"; else if (meshrights == 0) rights = "No Rights";
 
                 // Print the mesh information
-                r += '<div onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=display:inline-block;width:431px;height:50px;padding-top:1px;padding-bottom:1px;float:left><div style=float:left;width:30px;height:100%></div><div tabindex=0 style=height:100%;cursor:pointer onclick=gotoMesh(\'' + sortedMeshes[i]._id + '\') onkeypress="if (event.key==\'Enter\') gotoMesh(\'' + sortedMeshes[i]._id + '\')"><div class=mi style=float:left;width:50px;height:50px></div><div style=height:100%><div class=g1></div><div class=e2 style=width:300px><div class=e1>' + EscapeHtml(sortedMeshes[i].name) + '</div><div>' + rights + '</div></div><div class=g2 style=float:left></div></div></div></div>';
+                r += '<div onmouseover=devMouseHover(this,1) onmouseout=devMouseHover(this,0) style=display:inline-block;width:431px;height:50px;padding-top:1px;padding-bottom:1px;float:left><div style=float:left;width:30px;height:100%></div><div tabindex=0 style=height:100%;cursor:pointer onclick=gotoMesh(\'' + i + '\') onkeypress="if (event.key==\'Enter\') gotoMesh(\'' + i + '\')"><div class=mi style=float:left;width:50px;height:50px></div><div style=height:100%><div class=g1></div><div class=e2 style=width:300px><div class=e1>' + EscapeHtml(meshes[i].name) + '</div><div>' + rights + '</div></div><div class=g2 style=float:left></div></div></div></div>';
             }
 
             meshcount = count;
@@ -9153,35 +9114,6 @@
             p20updateMesh();
             go(20);
             return false;
-        }
-
-        function server_setupGoogleDriveBackup() {
-            if (xxdialogMode || (miscState['googleDrive'] == null)) return false;
-            var gd = miscState['googleDrive'];
-            if (gd.state < 3) {
-                var x = '<img style=float:right src="images/googledrive-48.png" /><div>' + "Setup this server to automatically upload backups to Google Drive. Start by creating and entering a Google Drive ClientID and ClientSecret for your account." + '</div><br />';
-                x += addHtmlValue("Credentials", '<a href="https://console.developers.google.com/apis/api/drive.googleapis.com/credentials" rel="noreferrer noopener" target="_blank">' + "Google Drive Console" + '</a>');
-                x += addHtmlValue("Client ID", '<input id=gdclientid style=width:240px placeholder="xxxxxxxx.apps.googleusercontent.com" onkeyup=server_setupGoogleDriveBackupCheck1()></input>');
-                x += addHtmlValue("Client Secret", '<input id=gdclientsecret style=width:240px onkeyup=server_setupGoogleDriveBackupCheck1()></input>');
-                setDialogMode(2, "Google Drive Backup", 3, server_setupGoogleDriveBackupEx, x, 'gd1');
-                Q('gdclientid').focus();
-                QE('idx_dlgOkButton', false);
-            } else if (gd.state == 3) {
-                var x = '<img style=float:right src="images/googledrive-48.png" /><div>' + "Google Drive backup is currently active." + '</div>';
-                x += '<br /><label><input id=gdcheck type=checkbox onchange=server_setupGoogleDriveBackupCheck2() />' + "Remove Configuration" + '</label>';
-                setDialogMode(2, "Google Drive Backup", 3, server_setupGoogleDriveBackupEx, x, 'gd0');
-                QE('idx_dlgOkButton', false);
-            }
-        }
-
-        function server_setupGoogleDriveBackupCheck1() { QE('idx_dlgOkButton', (Q('gdclientid').value.length > 0) && (Q('gdclientsecret').value.length > 0)); }
-        function server_setupGoogleDriveBackupCheck2() { QE('idx_dlgOkButton', Q('gdcheck').checked); }
-        function server_setupGoogleDriveBackupCheck3() { QE('idx_dlgOkButton', Q('gdcode').value.length > 0); }
-
-        function server_setupGoogleDriveBackupEx(b, t) {
-            if (t == 'gd0') { meshserver.send({ action: 'serverBackup', service: 'googleDrive', state: 0 }); }
-            if (t == 'gd1') { meshserver.send({ action: 'serverBackup', service: 'googleDrive', state: 1, clientid: Q('gdclientid').value, clientsecret: Q('gdclientsecret').value }); }
-            if (t == 'gd2') { meshserver.send({ action: 'serverBackup', service: 'googleDrive', state: 2, code: Q('gdcode').value }); }
         }
 
         function server_showRestoreDlg() {
@@ -9257,17 +9189,6 @@
             // Display group type
             x += addHtmlValue("Type", meshtype);
             //x += addHtmlValue('Identifier', currentMesh._id.split('/')[2]);
-
-            // Display device group creator
-            if ((currentMesh.creatorid != null) && (users != null) && (users[currentMesh.creatorid] != null)) {
-                var meshcreator = users[currentMesh.creatorid];
-                x += addHtmlValue("Creator", '<a onclick=gotoUser(\"' + encodeURIComponentEx(meshcreator._id) + '\",false,null)>' + EscapeHtml(meshcreator.name) + '</a>');
-            } else if (currentMesh.creatorname != null) {
-                x += addHtmlValue("Creator", EscapeHtml(currentMesh.creatorname));
-            }
-
-            // Display creation time
-            if (currentMesh.creation != null) { x += addHtmlValue("Creation Time", printDateTime(new Date(currentMesh.creation))); }
 
             // Display features
             if (currentMesh.mtype == 2) {
@@ -9528,17 +9449,27 @@
             if (editType == 3) { consent = (currentNode.consent) ? currentNode.consent : 0; title = "Edit Device User Consent"; }
             x += '<div style="width:100%;border-bottom:1px solid gray;margin-bottom:5px"><b>' + "Desktop" + '</b></div>';
             x += '<div><label><input type=checkbox id=d20flag1 ' + ((consent & 0x0001) ? 'checked' : '') + '>' + "Notify user" + '</label></div>';
+            x += '<div><label><input type=checkbox id=d20flag2 ' + ((consent & 0x0008) ? 'checked' : '') + '>' + "Prompt for user consent" + '</label></div>';
             x += '<div><label><input type=checkbox id=d20flag7 ' + ((consent & 0x0040) ? 'checked' : '') + '>' + "Show connection toolbar" + '</label></div>';
+            x += '<div style="width:100%;border-bottom:1px solid gray;margin-bottom:5px;margin-top:8px"><b>' + "Terminal" + '</b></div>';
+            x += '<div><label><input type=checkbox id=d20flag3 ' + ((consent & 0x0002) ? 'checked' : '') + '>' + "Notify user" + '</label></div>';
+            x += '<div><label><input type=checkbox id=d20flag4 ' + ((consent & 0x0010) ? 'checked' : '') + '>' + "Prompt for user consent" + '</label></div>';
             x += '<div style="width:100%;border-bottom:1px solid gray;margin-bottom:5px;margin-top:8px"><b>' + "Files" + '</b></div>';
             x += '<div><label><input type=checkbox id=d20flag5 ' + ((consent & 0x0004) ? 'checked' : '') + '>' + "Notify user" + '</label></div>';
             x += '<div><label><input type=checkbox id=d20flag6 ' + ((consent & 0x0020) ? 'checked' : '') + '>' + "Prompt for user consent" + '</label></div>';
             setDialogMode(2, title, 3, p20editmeshconsentEx, x, editType);
             if (serverinfo.consent) {
                 if (serverinfo.consent & 0x0001) { Q('d20flag1').checked = true; }
+                if (serverinfo.consent & 0x0008) { Q('d20flag2').checked = true; }
+                if (serverinfo.consent & 0x0002) { Q('d20flag3').checked = true; }
+                if (serverinfo.consent & 0x0010) { Q('d20flag4').checked = true; }
                 if (serverinfo.consent & 0x0004) { Q('d20flag5').checked = true; }
                 if (serverinfo.consent & 0x0020) { Q('d20flag6').checked = true; }
                 if (serverinfo.consent & 0x0040) { Q('d20flag7').checked = true; }
                 QE('d20flag1', !(serverinfo.consent & 0x0001));
+                QE('d20flag2', !(serverinfo.consent & 0x0008));
+                QE('d20flag3', !(serverinfo.consent & 0x0002));
+                QE('d20flag4', !(serverinfo.consent & 0x0010));
                 QE('d20flag5', !(serverinfo.consent & 0x0004));
                 QE('d20flag6', !(serverinfo.consent & 0x0020));
                 QE('d20flag7', !(serverinfo.consent & 0x0040));
@@ -9548,6 +9479,9 @@
         function p20editmeshconsentEx(b, editType) {
             var consent = 0;
             if (Q('d20flag1').checked) { consent += 0x0001; }
+            if (Q('d20flag2').checked) { consent += 0x0008; }
+            if (Q('d20flag3').checked) { consent += 0x0002; }
+            if (Q('d20flag4').checked) { consent += 0x0010; }
             if (Q('d20flag5').checked) { consent += 0x0004; }
             if (Q('d20flag6').checked) { consent += 0x0020; }
             if (Q('d20flag7').checked) { consent += 0x0040; }
@@ -9560,12 +9494,14 @@
             if (xxdialogMode) return;
             var flags = (currentMesh.flags)?currentMesh.flags:0;
             var x = '<div><label><input type=checkbox id=d20flag1 ' + ((flags & 1) ? 'checked' : '') + '>' + "Remove device on disconnect" + '</label><br></div>';
+            x += '<div><label><input type=checkbox id=d20flag2 ' + ((flags & 2) ? 'checked' : '') + '>' + "Sync server device name to hostname" + '</label><br></div>';
             setDialogMode(2, "Edit Device Group Features", 3, p20editmeshfeaturesEx, x);
         }
 
         function p20editmeshfeaturesEx() {
             var flags = 0;
             if (Q('d20flag1').checked) { flags += 1; }
+            if (Q('d20flag2').checked) { flags += 2; }
             meshserver.send({ action: 'editmesh', meshid: currentMesh._id, flags: flags });
         }
 
@@ -10301,14 +10237,6 @@
             if (bytes < 2097152) return format("{0} Kb", Math.round(bytes / 1024));
             if (bytes < 2147483648) return format("{0} Mb", Math.round(bytes / 1024 / 1024));
             return format("{0} Gb", Math.round(bytes / 1024 / 1024 / 1024));
-        }
-
-        function getNiceSize3(bytes) {
-            if (bytes <= 0) return "None";
-            if (bytes < 2048) return format("{0} b", bytes);
-            if (bytes < 2097152) return format("{0} Kb", round(bytes / 1024, 1));
-            if (bytes < 2147483648) return format("{0} Mb", round(bytes / 1024 / 1024, 1));
-            return format("{0} Gb", round(bytes / 1024 / 1024 / 1024, 1));
         }
 
         function p5getQuotabar(f) {
@@ -11141,7 +11069,6 @@
             x += '<div id=d2MngUsr><label><input type=checkbox onchange=showUserAdminDialogValidate() id=ua_manageusers>' + "Manage Users" + '</label><br></div>';
             x += '<div id=d2MngGrp><label><input type=checkbox onchange=showUserAdminDialogValidate() id=ua_manageusergroups>' + "Manage User Groups" + '</label><br></div>';
             x += '<div id=d2MngRec><label><input type=checkbox onchange=showUserAdminDialogValidate() id=ua_managerecordings>' + "Manage Recordings" + '</label><br></div>';
-            x += '<div id=d2AllEvnt><label><input type=checkbox onchange=showUserAdminDialogValidate() id=ua_allevents>' + "View All Events" + '</label><br></div>';
             if (x != '') { x += '<hr/>'; }
             x = '<div><div id=d2AdminPermissions>' + x;
             x += '<label><input type=checkbox onchange=showUserAdminDialogValidate() id=ua_lockedaccount>' + "Lock Account" + '</label><br>';
@@ -11172,10 +11099,6 @@
             if ((userinfo.siteadmin & 512) != 0) {
                 Q('ua_managerecordings').checked = ((user.siteadmin != 0xFFFFFFFF) && ((user.siteadmin & 512) != 0)); // Manage Recordings
                 QE('ua_managerecordings', !uself && (userinfo.siteadmin & 512));
-            }
-            if ((userinfo.siteadmin & 2048) != 0) {
-                Q('ua_allevents').checked = ((user.siteadmin != 0xFFFFFFFF) && ((user.siteadmin & 2048) != 0));       // View all events
-                QE('ua_allevents', !uself && (userinfo.siteadmin & 2048));
             }
 
             QE('ua_fulladmin', !uself && (userinfo.siteadmin == 0xFFFFFFFF));
@@ -11211,7 +11134,6 @@
                 QE('ua_nomeshcmd', !Q('ua_fulladmin').checked);
                 QE('ua_manageusergroups', !Q('ua_fulladmin').checked);
                 QE('ua_managerecordings', !Q('ua_fulladmin').checked);
-                QE('ua_allevents', !Q('ua_fulladmin').checked);
                 QE('ua_locksettings', !Q('ua_fulladmin').checked);
                 QE('ua_fileaccessquota', Q('ua_fileaccess').checked && !Q('ua_fulladmin').checked);
             }
@@ -11231,7 +11153,6 @@
                 if (Q('ua_manageusergroups').checked == true) siteadmin += 256;
                 if (Q('ua_managerecordings').checked == true) siteadmin += 512;
                 if (Q('ua_locksettings').checked == true) siteadmin += 1024;
-                if (Q('ua_allevents').checked == true) siteadmin += 2048;
             }
             var x = { action: 'edituser', id: user._id, siteadmin: siteadmin };
             if (isNaN(quota) == false) { x.quota = (quota * 1024); }
@@ -12504,12 +12425,12 @@
             window.serverStatCpu = new Chart(document.getElementById('serverCpuChart').getContext('2d'), {
                 type: 'doughnut',
                 data: { datasets: [{ data: [0, 0], backgroundColor: ['#AAAAAA', '#00AA00'] }], labels: ["Used", "Free"] },
-                options: { events: [], responsive: true, legend: { position: 'none', }, animation: { animateScale: true, animateRotate: true }, width: '40px' }
+                options: { events: [], responsive: true, legend: { position: 'none', }, animation: { animateScale: true, animateRotate: true }, width: '60px' }
             });
             window.serverStatMemory = new Chart(document.getElementById('serverMemoryChart').getContext('2d'), {
                 type: 'doughnut',
                 data: { datasets: [{ data: [0, 0], backgroundColor: ['#AAAAAA', '#00AA00'] }], labels: ["Used", "Free"] },
-                options: { events: [], responsive: true, legend: { position: 'none', }, animation: { animateScale: true, animateRotate: true }, width: '40px' }
+                options: { events: [], responsive: true, legend: { position: 'none', }, animation: { animateScale: true, animateRotate: true }, width: '60px' }
             });
         }
 
@@ -12551,14 +12472,9 @@
                 QS('serverCpuChartView')['display'] = 'inline-block';
                 window.serverStatCpu.update();
             }
-            if ((typeof message.totalmem == 'number') && (typeof message.availablemem == 'number')) {
-                window.serverStatMemory.config.data.datasets[0].data = [message.totalmem - message.availablemem, message.availablemem];
-                QH('serverMemoryChartText', '<div style=margin-bottom:5px>' + "Available Memory" + '</div><div><b>' + getNiceSize3(message.availablemem) + '</b> ' + "free" + ', <b>' + getNiceSize3(message.totalmem) + '</b> ' + "total" + '</div>');
-                QS('serverMemoryChartView')['display'] = 'inline-block';
-                window.serverStatMemory.update();
-            } else if ((typeof message.totalmem == 'number') && (typeof message.freemem == 'number')) {
+            if ((typeof message.totalmem == 'number') && (typeof message.freemem == 'number')) {
                 window.serverStatMemory.config.data.datasets[0].data = [message.totalmem - message.freemem, message.freemem];
-                QH('serverMemoryChartText', '<div style=margin-bottom:5px>' + "Memory" + '</div><div><b>' + getNiceSize3(message.freemem) + '</b> ' + "free" + ', <b>' + getNiceSize3(message.totalmem) + '</b> ' + "total" + '</div>');
+                QH('serverMemoryChartText', '<div style=margin-bottom:5px>' + "Memory" + '</div><div><b>' + getNiceSize2(message.freemem) + '</b> ' + "free" + ', <b>' + getNiceSize2(message.totalmem) + '</b> ' + "total" + '</div>');
                 QS('serverMemoryChartView')['display'] = 'inline-block';
                 window.serverStatMemory.update();
             }
@@ -13063,11 +12979,11 @@
                     if (installedPluginList['version_info'] != null && installedPluginList['version_info'][p._id] != null) {
                         var vin = installedPluginList['version_info'][p._id];
                         if (vin.hasUpdate) {
-                            p.upgradeAvail = '<a title="' + "View Changelog" + '" rel="noreferrer noopener" target="_blank" href="' + vin.changelogUrl + '">' + vin.version + '</a>';
+                            p.upgradeAvail = '<a title="' + "View Changelog" + '" target="_blank" href="' + vin.changelogUrl + '">' + vin.version + '</a>';
                         } else {
                             cant_action.push('upgrade');
                             if (p.status) p.upgradeAvail = "Up to date";
-                            else p.upgradeAvail = '<a title="' + "View Changelog" + '" rel="noreferrer noopener" target="_blank" href="' + vin.changelogUrl + '">' + vin.version + '</a>';
+                            else p.upgradeAvail = '<a title="' + "View Changelog" + '" target="_blank" href="' + vin.changelogUrl + '">' + vin.version + '</a>';
                         }
                         if (!vin.meshCentralCompat) {
                             p.upgradeAvail += vers_not_compat;
@@ -13085,7 +13001,7 @@
                     }
                     p.actions += '</select>';
 
-                    var tpl = '<td><img style=margin-top:3px src=images/plugin24.png></td><td class=gradTable1>&nbsp;</td><td class=gradTable2>' + p.nameHtml + '</td><td class=gradTable2>' + EscapeHtml(p.description) + '</td><td class=gradTable2 style=text-align:center><a href="' + EscapeHtml(p.homepage) + '" rel="noreferrer noopener" target="_blank">Home</a></td><td class=gradTable2 style=text-align:center>' + EscapeHtml(p.version) + '</td><td style=text-align:center class="pluginUpgradeAvailable gradTable2">' + p.upgradeAvail + '</td><td class=gradTable2 style="text-align:center;color:#' + p.statusColor + '">' + p.statusText + '</td><td class="pluginAction gradTable2" style=text-align:center>' + p.actions + '</td><td class=gradTable3>&nbsp;</td>';
+                    var tpl = '<td><img style=margin-top:3px src=images/plugin24.png></td><td class=gradTable1>&nbsp;</td><td class=gradTable2>' + p.nameHtml + '</td><td class=gradTable2>' + EscapeHtml(p.description) + '</td><td class=gradTable2 style=text-align:center><a href="' + EscapeHtml(p.homepage) + '" target="_blank">Home</a></td><td class=gradTable2 style=text-align:center>' + EscapeHtml(p.version) + '</td><td style=text-align:center class="pluginUpgradeAvailable gradTable2">' + p.upgradeAvail + '</td><td class=gradTable2 style="text-align:center;color:#' + p.statusColor + '">' + p.statusText + '</td><td class="pluginAction gradTable2" style=text-align:center>' + p.actions + '</td><td class=gradTable3>&nbsp;</td>';
                     var tr = tbl.insertRow(-1);
                     tr.innerHTML = tpl;
                     tr.classList.add('p42tblRow');
@@ -13378,7 +13294,7 @@
         function pad2(num) { var s = '00' + num; return s.substr(s.length - 2); }
         function encodeURIComponentEx(txt) { return encodeURIComponent(txt).replace(/'/g,'%27'); };
         function getUserName(userid) {  if (users && users[userid] != null) return users[userid].name; return userid.split('/')[2]; }
-        function round(value, precision) { var multiplier = Math.pow(10, precision || 0); return Math.round(value * multiplier) / multiplier; }
+
     </script>
 </body>
 </html>
